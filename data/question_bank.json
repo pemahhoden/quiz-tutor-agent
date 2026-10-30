@@ -268,5 +268,185 @@
   "answer": 2,
   "hint": "Imagine 10,000 people and count how many positive tests are real and how many are false.",
   "explanation": "Of 10,000 people, 100 are sick and 90 of them test positive. Of 9,900 healthy people, about 891 test positive by mistake. So 90 / (90 + 891) is about 9%."
+ },
+ {
+  "id": "ml-001",
+  "topic": "Machine learning basics",
+  "difficulty": "easy",
+  "question": "Which type of learning uses data with known correct answers (labels)?",
+  "options": [
+   "Unsupervised learning",
+   "Supervised learning",
+   "Reinforcement learning",
+   "Clustering"
+  ],
+  "answer": 1,
+  "hint": "Think of a teacher who supplies the right answers.",
+  "explanation": "Supervised learning trains on labelled examples. Unsupervised learning works without labels, clustering is an unsupervised task, and reinforcement learning learns from rewards."
+ },
+ {
+  "id": "ml-002",
+  "topic": "Machine learning basics",
+  "difficulty": "easy",
+  "question": "Predicting the price of a house (a number) is an example of:",
+  "options": [
+   "Classification",
+   "Clustering",
+   "Regression",
+   "Dimensionality reduction"
+  ],
+  "answer": 2,
+  "hint": "The output is a number on a continuous scale.",
+  "explanation": "Predicting a numeric value is regression. Classification predicts a category, such as spam or not spam."
+ },
+ {
+  "id": "ml-003",
+  "topic": "Machine learning basics",
+  "difficulty": "easy",
+  "question": "In machine learning, what are features?",
+  "options": [
+   "The input variables used to make a prediction",
+   "The value the model predicts",
+   "The errors the model makes",
+   "The number of training rounds"
+  ],
+  "answer": 0,
+  "hint": "They are the columns the model looks at.",
+  "explanation": "Features are the input variables. The value we want to predict is called the target or label."
+ },
+ {
+  "id": "ml-004",
+  "topic": "Machine learning basics",
+  "difficulty": "easy",
+  "question": "Why do we split data into a training set and a test set?",
+  "options": [
+   "To make training faster",
+   "To remove missing values",
+   "To increase the number of features",
+   "To check how well the model works on data it has not seen"
+  ],
+  "answer": 3,
+  "hint": "A model should be judged on new data, not on data it already learned from.",
+  "explanation": "The test set is unseen data, so the score on it is an honest estimate of how the model will perform in real use."
+ },
+ {
+  "id": "ml-005",
+  "topic": "Machine learning basics",
+  "difficulty": "medium",
+  "question": "A model has 99% accuracy on training data but only 60% on test data. What is the most likely problem?",
+  "options": [
+   "Underfitting",
+   "Missing labels",
+   "Correct fitting",
+   "Overfitting"
+  ],
+  "answer": 3,
+  "hint": "The model did very well on data it has seen and badly on new data.",
+  "explanation": "This is overfitting: the model memorised the training data instead of learning general patterns. Underfitting would give poor scores on both sets."
+ },
+ {
+  "id": "ml-006",
+  "topic": "Machine learning basics",
+  "difficulty": "medium",
+  "question": "A model makes 100 predictions and 90 of them are correct. Which metric equals 90%?",
+  "options": [
+   "Accuracy",
+   "Recall",
+   "Precision",
+   "R-squared"
+  ],
+  "answer": 0,
+  "hint": "Correct predictions divided by all predictions.",
+  "explanation": "Accuracy is the share of all predictions that are correct. Precision and recall look at only part of the predictions, and R-squared is used for regression."
+ },
+ {
+  "id": "ml-007",
+  "topic": "Machine learning basics",
+  "difficulty": "medium",
+  "question": "In k-nearest neighbours (k-NN), what does k stand for?",
+  "options": [
+   "The number of features",
+   "The number of clusters",
+   "The number of nearest neighbours that vote",
+   "The number of training rounds"
+  ],
+  "answer": 2,
+  "hint": "A new point looks at the points closest to it.",
+  "explanation": "k-NN classifies a new point by a majority vote of its k closest training points. The number of clusters is the k in k-means, a different method."
+ },
+ {
+  "id": "ml-008",
+  "topic": "Machine learning basics",
+  "difficulty": "medium",
+  "question": "Which of these is an unsupervised learning method?",
+  "options": [
+   "Linear regression",
+   "Decision tree classification",
+   "k-means clustering",
+   "Logistic regression"
+  ],
+  "answer": 2,
+  "hint": "Which method groups data without any labels?",
+  "explanation": "k-means groups similar points together without labels. The other three methods need labelled training data."
+ },
+ {
+  "id": "ml-009",
+  "topic": "Machine learning basics",
+  "difficulty": "hard",
+  "question": "Only 1% of emails are spam. A model that always answers 'not spam' gets 99% accuracy. Why is accuracy misleading here?",
+  "options": [
+   "Because the data set is balanced",
+   "Because 99% is too low",
+   "Because accuracy cannot be calculated for two classes",
+   "Because the model never finds the rare spam class, so spam recall is 0"
+  ],
+  "answer": 3,
+  "hint": "Think about how many spam emails the model actually catches.",
+  "explanation": "With a rare class, a model can score high accuracy by ignoring it. Metrics such as precision, recall and F1-score show how well the rare class is found."
+ },
+ {
+  "id": "ml-010",
+  "topic": "Machine learning basics",
+  "difficulty": "hard",
+  "question": "A model flags 10 emails as spam and 8 of them really are spam. There were 20 spam emails in total. What are the precision and recall?",
+  "options": [
+   "Precision 0.8, recall 0.4",
+   "Precision 0.4, recall 0.8",
+   "Precision 0.8, recall 0.8",
+   "Precision 0.4, recall 0.4"
+  ],
+  "answer": 0,
+  "hint": "Precision divides by the predicted positives. Recall divides by the actual positives.",
+  "explanation": "Precision = 8 / 10 = 0.8, because 8 of the 10 flagged emails are spam. Recall = 8 / 20 = 0.4, because only 8 of the 20 real spam emails were found."
+ },
+ {
+  "id": "ml-011",
+  "topic": "Machine learning basics",
+  "difficulty": "hard",
+  "question": "Which of these is an example of data leakage?",
+  "options": [
+   "Using cross-validation",
+   "Splitting the data before any preprocessing",
+   "Scaling the whole data set using its overall mean before splitting into train and test",
+   "Keeping a separate validation set"
+  ],
+  "answer": 2,
+  "hint": "Does any information from the test set reach the training step?",
+  "explanation": "If the mean is calculated on all the data, information from the test set leaks into training. The scaler should be fitted on the training set only."
+ },
+ {
+  "id": "ml-012",
+  "topic": "Machine learning basics",
+  "difficulty": "hard",
+  "question": "What usually happens to a decision tree when its depth is increased a lot?",
+  "options": [
+   "Bias increases and variance decreases",
+   "Bias decreases and variance increases",
+   "Both bias and variance increase",
+   "Both bias and variance decrease"
+  ],
+  "answer": 1,
+  "hint": "A very deep tree can fit every single training point.",
+  "explanation": "A deep tree fits the training data very closely, so bias is low. But it also follows the noise, so variance is high, which leads to overfitting."
  }
 ]
