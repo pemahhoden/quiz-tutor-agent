@@ -1,10 +1,12 @@
-"""Streamlit UI for the Quiz Tutor Agent. Run with: streamlit run app.py"""
+﻿"""Streamlit UI for the Quiz Tutor Agent. Run with: streamlit run app.py"""
 import streamlit as st
 
 from agent import memory, planner, tools
 from agent.agent import QuizAgent
 
 st.set_page_config(page_title="Quiz Tutor Agent", page_icon="🎓")
+
+HOME = "🏠 Home"
 
 CSS = """
 <style>
@@ -18,6 +20,12 @@ footer {visibility: hidden;}
 .stButton > button {border-radius: 10px;}
 .step-card {background: white; border: 1px solid #E2E8F0; border-radius: 12px;
        padding: 14px; font-size: 0.95rem;}
+.topic-head {color: white; padding: 10px 14px; border-radius: 10px;
+       font-weight: 700; font-size: 1.05rem; margin-bottom: 8px;}
+.chip {display: inline-block; padding: 6px 12px; border-radius: 999px;
+       margin: 4px 6px 4px 0; font-size: 0.9rem; font-weight: 600;}
+.chip-on {background: #EEF2FF; color: #4338CA; border: 1px solid #C7D2FE;}
+.chip-off {background: #F1F5F9; color: #94A3B8; border: 1px dashed #CBD5E1;}
 </style>
 """
 st.markdown(CSS, unsafe_allow_html=True)
@@ -30,8 +38,8 @@ def get_agent():
 
 agent = get_agent()
 
-for key, default in [("session", None), ("result", None),
-                     ("quiz_no", 0), ("hint_text", {})]:
+for key, default in [("session", None), ("result", None), ("quiz_no", 0),
+                     ("hint_text", {}), ("celebrated", 0), ("menu", HOME)]:
     if key not in st.session_state:
         st.session_state[key] = default
 
@@ -40,6 +48,29 @@ BADGES = {
     "medium": ":orange-badge[medium]",
     "hard": ":red-badge[hard]",
 }
+TOPIC_ICONS = {"Python basics": "🐍", "Statistics": "📊",
+               "Machine learning basics": "🤖"}
+TOPIC_COLORS = {"Python basics": ("#2563EB", "#06B6D4"),
+                "Statistics": ("#7C3AED", "#EC4899"),
+                "Machine learning basics": ("#059669", "#65A30D")}
+AUTO = "🤖 Let the agent decide"
+DIFFICULTY_LABELS = {"easy": "🟢 easy", "medium": "🟠 medium", "hard": "🔴 hard"}
+
+
+# ---------- small helpers and button actions ----------
+def go_home():
+    st.session_state.menu = HOME
+
+
+def reset_quiz():
+    st.session_state.session = None
+    st.session_state.result = None
+    st.session_state.hint_text = {}
+
+
+def finish_and_go_home():
+    reset_quiz()
+    go_home()
 
 
 def hero(title, subtitle):
@@ -57,6 +88,31 @@ def score_message(score):
     return "💪 Keep practising. The agent will adjust your next quiz."
 
 
+def score_ring(score):
+    color = "#16A34A" if score >= 80 else "#F59E0B" if score >= 50 else "#DC2626"
+    deg = int(score * 3.6)
+    return (
+        f'<div style="width:130px;height:130px;border-radius:50%;'
+        f'background:conic-gradient({color} {deg}deg,#E2E8F0 0);'
+        f'display:flex;align-items:center;justify-content:center;">'
+        f'<div style="width:100px;height:100px;border-radius:50%;background:white;'
+        f'display:flex;align-items:center;justify-content:center;'
+        f'font-size:1.7rem;font-weight:700;color:{color};">{score:.0f}%</div></div>'
+    )
+
+
+def achievements(history, n_topics):
+    scores = list(history["score"]) if not history.empty else []
+    tried = len(memory.get_topic_stats())
+    return [
+        ("🥇", "First quiz", len(scores) >= 1),
+        ("🔥", "3 quizzes done", len(scores) >= 3),
+        ("💯", "Perfect score", any(s == 100 for s in scores)),
+        ("📈", "Improving", len(scores) >= 2 and scores[-1] > scores[0]),
+        ("🌍", "Tried every topic", n_topics > 0 and tried >= n_topics),
+    ]
+
+
 def show_plan(session):
     plan = session["plan"]
     with st.expander("🧠 Why this quiz? (the agent's plan)", expanded=True):
@@ -69,6 +125,7 @@ def show_plan(session):
             st.write("- " + reason)
 
 
+# ---------- pages ----------
 def page_home():
     hero(
         "🎓 Quiz Tutor Agent",
@@ -82,16 +139,28 @@ def page_home():
     except tools.ToolError as e:
         st.error(f"The question bank has a problem: {e}")
         return
-    c1, c2, c3 = st.columns(3)
+    history = memory.get_history()
+    topics = {q["topic"] for q in bank}
+
+    c1, c2, c3, c4 = st.columns(4)
     c1.metric("Quizzes taken", progress["quizzes_taken"])
     avg = progress["average_recent"]
     c2.metric("Recent average", f"{avg:.0f}%" if avg is not None else "-")
     c3.metric("Weakest topic", progress["weakest_topic"] or "-")
+    c4.metric("Level", 1 + progress["quizzes_taken"] // 3)
 
     with st.container(border=True):
         st.markdown("#### 🎯 Recommended next quiz")
         st.write(rec["message"])
         st.caption("Open the Quiz page from the menu and let the agent decide.")
+
+    st.markdown("#### 🏅 Achievements")
+    chips = "".join(
+        f'<span class="chip {"chip-on" if earned else "chip-off"}">'
+        f'{icon} {label}</span>'
+        for icon, label, earned in achievements(history, len(topics))
+    )
+    st.markdown(chips, unsafe_allow_html=True)
 
     st.markdown("#### How the agent works")
     steps = [
@@ -105,14 +174,7 @@ def page_home():
             f'<div class="step-card"><b>{title}</b><br>{text}</div>',
             unsafe_allow_html=True,
         )
-    topics = {q["topic"] for q in bank}
     st.caption(f"Question bank: {len(bank)} questions across {len(topics)} topics.")
-
-
-TOPIC_ICONS = {"Python basics": "🐍", "Statistics": "📊",
-               "Machine learning basics": "🤖"}
-AUTO = "🤖 Let the agent decide"
-DIFFICULTY_LABELS = {"easy": "🟢 easy", "medium": "🟠 medium", "hard": "🔴 hard"}
 
 
 def topic_cards(topics):
@@ -122,8 +184,13 @@ def topic_cards(topics):
     for col, topic in zip(st.columns(len(topics)), topics):
         total = len([q for q in bank if q["topic"] == topic])
         seen = len(memory.get_seen_question_ids(topic))
+        c1, c2 = TOPIC_COLORS.get(topic, ("#4F46E5", "#7C3AED"))
         with col.container(border=True):
-            st.markdown(f"### {TOPIC_ICONS.get(topic, '📚')} {topic}")
+            st.markdown(
+                f'<div class="topic-head" style="background:linear-gradient('
+                f'135deg,{c1},{c2});">{TOPIC_ICONS.get(topic, "📚")} {topic}</div>',
+                unsafe_allow_html=True,
+            )
             st.caption(f"{total} questions · {seen} already seen")
             if topic in stats.index:
                 acc = float(stats.loc[topic, "accuracy"])
@@ -133,6 +200,7 @@ def topic_cards(topics):
 
 
 def show_setup():
+    st.button("← Home", on_click=go_home, key="setup_home")
     st.header("📝 Start a quiz")
     try:
         topics = tools.list_topics()
@@ -184,7 +252,10 @@ def show_quiz():
     session = st.session_state.session
     quiz_no = st.session_state.quiz_no
     questions = session["questions"]
-    st.header("📝 Quiz")
+    st.button("← Cancel quiz", on_click=reset_quiz, key="cancel_quiz")
+    st.caption("Cancelling does not save this quiz.")
+    st.header(f"📝 {TOPIC_ICONS.get(session['plan']['topic'], '')} "
+              f"{session['plan']['topic']}")
     for notice in session["notices"]:
         st.warning(notice)
     show_plan(session)
@@ -239,20 +310,25 @@ def show_results():
     result = st.session_state.result
     session = st.session_state.session
     st.header("🏁 Results")
+    if result["score"] >= 80 and st.session_state.celebrated != st.session_state.quiz_no:
+        st.balloons()
+        st.session_state.celebrated = st.session_state.quiz_no
     with st.container(border=True):
         c1, c2 = st.columns([1, 2])
-        c1.metric("Score", f"{result['score']:.0f}%")
+        c1.markdown(score_ring(result["score"]), unsafe_allow_html=True)
         c2.markdown(f"### {score_message(result['score'])}")
         c2.write(f"{result['correct']} of {result['total']} correct.")
-        st.progress(int(result["score"]))
 
     st.subheader("Your answers")
     for i, r in enumerate(result["review"], start=1):
         icon = "✅" if r["is_correct"] else "❌"
         with st.expander(f"{icon} Question {i}", expanded=not r["is_correct"]):
             st.write(r["question"])
-            st.write(f"Your answer: **{r['options'][r['chosen']]}**")
-            st.write(f"Correct answer: **{r['options'][r['correct_index']]}**")
+            if r["is_correct"]:
+                st.success(f"Your answer: {r['options'][r['chosen']]}")
+            else:
+                st.error(f"Your answer: {r['options'][r['chosen']]}")
+                st.success(f"Correct answer: {r['options'][r['correct_index']]}")
             if r["hint_used"]:
                 st.caption("You used a hint on this question.")
             st.info(r["explanation"])
@@ -262,10 +338,11 @@ def show_results():
     with st.expander("🔍 What did the agent do? (trace)"):
         for step in session["trace"]:
             st.write(f"**{step['step']}:** {step['detail']}")
-    if st.button("Start a new quiz", type="primary"):
-        st.session_state.session = None
-        st.session_state.result = None
-        st.rerun()
+    b1, b2 = st.columns(2)
+    b1.button("Start a new quiz", type="primary", on_click=reset_quiz,
+              key="new_quiz", use_container_width=True)
+    b2.button("🏠 Back to Home", on_click=finish_and_go_home,
+              key="results_home", use_container_width=True)
 
 
 def page_quiz():
@@ -294,17 +371,17 @@ def page_progress():
         scores = history[["score"]].copy()
         scores.index = range(1, len(scores) + 1)
         scores.index.name = "Quiz number"
-        st.line_chart(scores)
+        st.line_chart(scores, color="#4F46E5")
 
     with tab2:
         stats = memory.get_topic_stats()
         st.subheader("Accuracy by topic (%)")
-        st.bar_chart(stats.set_index("topic")["accuracy"])
+        st.bar_chart(stats.set_index("topic")["accuracy"], color="#7C3AED")
         weakest = stats.iloc[0]
         st.write(f"Area to improve: **{weakest['topic']}** "
                  f"({weakest['accuracy']:.0f}% correct).")
         st.subheader("Tools used by the agent")
-        st.bar_chart(history["tool_used"].value_counts())
+        st.bar_chart(history["tool_used"].value_counts(), color="#059669")
 
     with tab3:
         attempts = memory.get_attempts()
@@ -329,10 +406,12 @@ def page_progress():
         st.dataframe(shown, hide_index=True)
 
 
-PAGES = {"🏠 Home": page_home, "📝 Quiz": page_quiz, "📈 Progress": page_progress}
+# ---------- navigation ----------
+PAGES = {HOME: page_home, "📝 Quiz": page_quiz, "📈 Progress": page_progress}
 
 st.sidebar.title("🎓 Quiz Tutor Agent")
-choice = st.sidebar.radio("Menu", list(PAGES), label_visibility="collapsed")
+choice = st.sidebar.radio("Menu", list(PAGES), label_visibility="collapsed",
+                          key="menu")
 st.sidebar.divider()
 st.sidebar.caption(
     "Questions: question bank + rules" + (" + LLM" if agent.generator else "")
