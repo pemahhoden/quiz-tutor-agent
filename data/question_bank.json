@@ -1,43 +1,272 @@
-﻿[
-  {"id": "py-001", "topic": "Python basics", "difficulty": "easy",
-   "question": "What does print(type(3.0)) show?",
-   "options": ["<class 'int'>", "<class 'float'>", "<class 'str'>", "<class 'double'>"],
-   "answer": 1,
-   "hint": "3.0 has a decimal point.",
-   "explanation": "Numbers with a decimal point are floats in Python. Python has no type called double."},
-
-  {"id": "py-002", "topic": "Python basics", "difficulty": "easy",
-   "question": "Which symbol starts a single-line comment in Python?",
-   "options": ["#", "//", "--", "/*"],
-   "answer": 0,
-   "hint": "It is also called the hash sign.",
-   "explanation": "Python uses # for comments. // and /* are used in other languages."},
-
-  {"id": "py-003", "topic": "Python basics", "difficulty": "medium",
-   "question": "What is the output of len([1, 2, [3, 4]])?",
-   "options": ["2", "3", "4", "5"],
-   "answer": 1,
-   "hint": "Count the items at the top level of the list only.",
-   "explanation": "The list has 3 items: 1, 2 and the inner list [3, 4]. The inner list counts as one item."},
-
-  {"id": "py-004", "topic": "Python basics", "difficulty": "medium",
-   "question": "What does [x * 2 for x in range(3)] return?",
-   "options": ["[0, 2, 4]", "[2, 4, 6]", "[0, 1, 2]", "[1, 2, 3]"],
-   "answer": 0,
-   "hint": "range(3) gives 0, 1, 2.",
-   "explanation": "range(3) gives 0, 1, 2. Doubling each one gives 0, 2, 4."},
-
-  {"id": "py-005", "topic": "Python basics", "difficulty": "hard",
-   "question": "What is printed? a = [1, 2]; b = a; b.append(3); print(a)",
-   "options": ["[1, 2]", "[1, 2, 3]", "[3]", "An error"],
-   "answer": 1,
-   "hint": "Does b = a make a copy of the list?",
-   "explanation": "b = a does not copy the list. Both names point to the same list, so changing b also changes a."},
-
-  {"id": "py-006", "topic": "Python basics", "difficulty": "hard",
-   "question": "What is printed? def add(x, lst=[]): lst.append(x); return lst. Then add(1) is called, then print(add(2)).",
-   "options": ["[2]", "[1, 2]", "[1]", "An error"],
-   "answer": 1,
-   "hint": "When is the default list created: at every call, or only once?",
-   "explanation": "A default argument is created once, when the function is defined. The same list is reused, so it keeps the 1 from the first call."}
+[
+ {
+  "id": "py-001",
+  "topic": "Python basics",
+  "difficulty": "easy",
+  "question": "What does print(type(3.0)) show?",
+  "options": [
+   "<class 'int'>",
+   "<class 'float'>",
+   "<class 'str'>",
+   "<class 'double'>"
+  ],
+  "answer": 1,
+  "hint": "3.0 has a decimal point.",
+  "explanation": "Numbers with a decimal point are floats in Python. Python has no type called double."
+ },
+ {
+  "id": "py-002",
+  "topic": "Python basics",
+  "difficulty": "easy",
+  "question": "Which symbol starts a single-line comment in Python?",
+  "options": [
+   "#",
+   "//",
+   "--",
+   "/*"
+  ],
+  "answer": 0,
+  "hint": "It is also called the hash sign.",
+  "explanation": "Python uses # for comments. // and /* are used in other languages."
+ },
+ {
+  "id": "py-003",
+  "topic": "Python basics",
+  "difficulty": "medium",
+  "question": "What is the output of len([1, 2, [3, 4]])?",
+  "options": [
+   "2",
+   "3",
+   "4",
+   "5"
+  ],
+  "answer": 1,
+  "hint": "Count the items at the top level of the list only.",
+  "explanation": "The list has 3 items: 1, 2 and the inner list [3, 4]. The inner list counts as one item."
+ },
+ {
+  "id": "py-004",
+  "topic": "Python basics",
+  "difficulty": "medium",
+  "question": "What does [x * 2 for x in range(3)] return?",
+  "options": [
+   "[0, 2, 4]",
+   "[2, 4, 6]",
+   "[0, 1, 2]",
+   "[1, 2, 3]"
+  ],
+  "answer": 0,
+  "hint": "range(3) gives 0, 1, 2.",
+  "explanation": "range(3) gives 0, 1, 2. Doubling each one gives 0, 2, 4."
+ },
+ {
+  "id": "py-005",
+  "topic": "Python basics",
+  "difficulty": "hard",
+  "question": "What is printed? a = [1, 2]; b = a; b.append(3); print(a)",
+  "options": [
+   "[1, 2]",
+   "[1, 2, 3]",
+   "[3]",
+   "An error"
+  ],
+  "answer": 1,
+  "hint": "Does b = a make a copy of the list?",
+  "explanation": "b = a does not copy the list. Both names point to the same list, so changing b also changes a."
+ },
+ {
+  "id": "py-006",
+  "topic": "Python basics",
+  "difficulty": "hard",
+  "question": "What is printed? def add(x, lst=[]): lst.append(x); return lst. Then add(1) is called, then print(add(2)).",
+  "options": [
+   "[2]",
+   "[1, 2]",
+   "[1]",
+   "An error"
+  ],
+  "answer": 1,
+  "hint": "When is the default list created: at every call, or only once?",
+  "explanation": "A default argument is created once, when the function is defined. The same list is reused, so it keeps the 1 from the first call."
+ },
+ {
+  "id": "st-001",
+  "topic": "Statistics",
+  "difficulty": "easy",
+  "question": "What is the mean of 2, 4, 6, 8?",
+  "options": [
+   "4",
+   "5",
+   "6",
+   "20"
+  ],
+  "answer": 1,
+  "hint": "Add all the numbers, then divide by how many numbers there are.",
+  "explanation": "2 + 4 + 6 + 8 = 20, and 20 divided by 4 numbers is 5."
+ },
+ {
+  "id": "st-002",
+  "topic": "Statistics",
+  "difficulty": "easy",
+  "question": "What is the median of 2, 9, 4, 20, 5?",
+  "options": [
+   "4",
+   "5",
+   "8",
+   "9"
+  ],
+  "answer": 1,
+  "hint": "Put the numbers in order first, then pick the middle one.",
+  "explanation": "In order: 2, 4, 5, 9, 20. The middle value is 5. The value 8 is the mean, not the median."
+ },
+ {
+  "id": "st-003",
+  "topic": "Statistics",
+  "difficulty": "easy",
+  "question": "Which measure is the value that appears most often in a data set?",
+  "options": [
+   "Mean",
+   "Median",
+   "Mode",
+   "Range"
+  ],
+  "answer": 2,
+  "hint": "Think of the word 'most' in 'most common'.",
+  "explanation": "The mode is the most frequent value. The mean is the average, the median is the middle value, and the range is the spread from smallest to largest."
+ },
+ {
+  "id": "st-004",
+  "topic": "Statistics",
+  "difficulty": "easy",
+  "question": "What is the range of 4, 9, 15, 2?",
+  "options": [
+   "13",
+   "9",
+   "15",
+   "30"
+  ],
+  "answer": 0,
+  "hint": "Subtract the smallest value from the largest value.",
+  "explanation": "The largest value is 15 and the smallest is 2, so the range is 15 - 2 = 13."
+ },
+ {
+  "id": "st-005",
+  "topic": "Statistics",
+  "difficulty": "medium",
+  "question": "What does the standard deviation measure?",
+  "options": [
+   "The middle value of the data",
+   "How spread out the values are around the mean",
+   "The most frequent value",
+   "The difference between the largest and smallest value"
+  ],
+  "answer": 1,
+  "hint": "A small value means the data points are close together.",
+  "explanation": "Standard deviation tells you how far values typically are from the mean. The difference between largest and smallest is the range."
+ },
+ {
+  "id": "st-006",
+  "topic": "Statistics",
+  "difficulty": "medium",
+  "question": "A fair coin is tossed twice. What is the probability of getting two heads?",
+  "options": [
+   "1/2",
+   "1/4",
+   "1/3",
+   "3/4"
+  ],
+  "answer": 1,
+  "hint": "Multiply the chance of heads on the first toss by the chance on the second.",
+  "explanation": "The tosses are independent, so the probability is 1/2 x 1/2 = 1/4."
+ },
+ {
+  "id": "st-007",
+  "topic": "Statistics",
+  "difficulty": "medium",
+  "question": "A data set contains one extremely large outlier. Which measure is affected the least?",
+  "options": [
+   "Mean",
+   "Median",
+   "Range",
+   "Standard deviation"
+  ],
+  "answer": 1,
+  "hint": "Which measure only looks at the middle position, not at the size of every value?",
+  "explanation": "The median depends on the position of the middle value, so one extreme value barely changes it. The mean, range and standard deviation all change a lot."
+ },
+ {
+  "id": "st-008",
+  "topic": "Statistics",
+  "difficulty": "medium",
+  "question": "A correlation coefficient of r = -0.9 means:",
+  "options": [
+   "A strong positive linear relationship",
+   "A strong negative linear relationship",
+   "No relationship",
+   "A weak negative relationship"
+  ],
+  "answer": 1,
+  "hint": "The sign gives the direction and the size (close to 1) gives the strength.",
+  "explanation": "The negative sign means that as one variable goes up, the other goes down. A value near -1 means the linear relationship is strong."
+ },
+ {
+  "id": "st-009",
+  "topic": "Statistics",
+  "difficulty": "hard",
+  "question": "A test gives a p-value of 0.03 at a significance level of 0.05. What is the correct conclusion?",
+  "options": [
+   "Reject the null hypothesis at the 5% level",
+   "Fail to reject the null hypothesis",
+   "The null hypothesis is proven true",
+   "The result must be a mistake"
+  ],
+  "answer": 0,
+  "hint": "Compare the p-value with the significance level.",
+  "explanation": "Because 0.03 is smaller than 0.05, we reject the null hypothesis at the 5% level. This does not prove the alternative hypothesis is true."
+ },
+ {
+  "id": "st-010",
+  "topic": "Statistics",
+  "difficulty": "hard",
+  "question": "A 95% confidence interval for a mean is (40, 50). Which interpretation is correct?",
+  "options": [
+   "There is a 95% probability that the sample mean is between 40 and 50",
+   "95% of the data values lie between 40 and 50",
+   "If we repeated the sampling many times, about 95% of such intervals would contain the true mean",
+   "The true mean is exactly 45"
+  ],
+  "answer": 2,
+  "hint": "The 95% describes the method used over many repeated samples.",
+  "explanation": "The confidence level is about the long-run success of the method. It is not a probability for one interval and not a share of the data values."
+ },
+ {
+  "id": "st-011",
+  "topic": "Statistics",
+  "difficulty": "hard",
+  "question": "Why is the sample variance calculated by dividing by n - 1 instead of n?",
+  "options": [
+   "To make the variance smaller on purpose",
+   "To correct the bias, because deviations are measured from the sample mean",
+   "Because samples are always small",
+   "To remove the effect of outliers"
+  ],
+  "answer": 1,
+  "hint": "The sample mean is closer to the sample data than the true mean is.",
+  "explanation": "Values are on average closer to their own sample mean than to the true mean, so dividing by n would underestimate the variance. Using n - 1 corrects this bias."
+ },
+ {
+  "id": "st-012",
+  "topic": "Statistics",
+  "difficulty": "hard",
+  "question": "1% of people have a disease. A test finds 90% of people who have it and wrongly flags 9% of healthy people. A person tests positive. About how likely is it that they have the disease?",
+  "options": [
+   "About 90%",
+   "About 50%",
+   "About 9%",
+   "About 1%"
+  ],
+  "answer": 2,
+  "hint": "Imagine 10,000 people and count how many positive tests are real and how many are false.",
+  "explanation": "Of 10,000 people, 100 are sick and 90 of them test positive. Of 9,900 healthy people, about 891 test positive by mistake. So 90 / (90 + 891) is about 9%."
+ }
 ]
