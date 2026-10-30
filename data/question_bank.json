@@ -1,0 +1,43 @@
+﻿[
+  {"id": "py-001", "topic": "Python basics", "difficulty": "easy",
+   "question": "What does print(type(3.0)) show?",
+   "options": ["<class 'int'>", "<class 'float'>", "<class 'str'>", "<class 'double'>"],
+   "answer": 1,
+   "hint": "3.0 has a decimal point.",
+   "explanation": "Numbers with a decimal point are floats in Python. Python has no type called double."},
+
+  {"id": "py-002", "topic": "Python basics", "difficulty": "easy",
+   "question": "Which symbol starts a single-line comment in Python?",
+   "options": ["#", "//", "--", "/*"],
+   "answer": 0,
+   "hint": "It is also called the hash sign.",
+   "explanation": "Python uses # for comments. // and /* are used in other languages."},
+
+  {"id": "py-003", "topic": "Python basics", "difficulty": "medium",
+   "question": "What is the output of len([1, 2, [3, 4]])?",
+   "options": ["2", "3", "4", "5"],
+   "answer": 1,
+   "hint": "Count the items at the top level of the list only.",
+   "explanation": "The list has 3 items: 1, 2 and the inner list [3, 4]. The inner list counts as one item."},
+
+  {"id": "py-004", "topic": "Python basics", "difficulty": "medium",
+   "question": "What does [x * 2 for x in range(3)] return?",
+   "options": ["[0, 2, 4]", "[2, 4, 6]", "[0, 1, 2]", "[1, 2, 3]"],
+   "answer": 0,
+   "hint": "range(3) gives 0, 1, 2.",
+   "explanation": "range(3) gives 0, 1, 2. Doubling each one gives 0, 2, 4."},
+
+  {"id": "py-005", "topic": "Python basics", "difficulty": "hard",
+   "question": "What is printed? a = [1, 2]; b = a; b.append(3); print(a)",
+   "options": ["[1, 2]", "[1, 2, 3]", "[3]", "An error"],
+   "answer": 1,
+   "hint": "Does b = a make a copy of the list?",
+   "explanation": "b = a does not copy the list. Both names point to the same list, so changing b also changes a."},
+
+  {"id": "py-006", "topic": "Python basics", "difficulty": "hard",
+   "question": "What is printed? def add(x, lst=[]): lst.append(x); return lst. Then add(1) is called, then print(add(2)).",
+   "options": ["[2]", "[1, 2]", "[1]", "An error"],
+   "answer": 1,
+   "hint": "When is the default list created: at every call, or only once?",
+   "explanation": "A default argument is created once, when the function is defined. The same list is reused, so it keeps the 1 from the first call."}
+]
