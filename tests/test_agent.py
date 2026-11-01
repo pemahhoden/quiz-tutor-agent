@@ -1,4 +1,4 @@
-﻿import json
+import json
 
 import pytest
 
@@ -103,7 +103,7 @@ def test_llm_failure_falls_back_to_the_bank(env):
 
     agent = QuizAgent(generator=broken)
     session = agent.start_quiz(topic="B", n=3)
-    assert session["plan"]["tool"] == "llm_generator"
+    assert session["plan"]["tool"] == "question_generator"
     assert session["tool_used"] == "question_bank"
     assert session["notices"]
     assert len(session["questions"]) == 3
@@ -117,7 +117,7 @@ def test_valid_generated_questions_are_used(env):
 
     agent = QuizAgent(generator=good)
     session = agent.start_quiz(topic="B", n=3)
-    assert session["tool_used"] == "llm_generator"
+    assert session["tool_used"] == "question_generator"
     assert all(q["id"].startswith("g") for q in session["questions"])
 
 

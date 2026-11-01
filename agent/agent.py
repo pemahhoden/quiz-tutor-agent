@@ -1,4 +1,4 @@
-﻿"""The Quiz Tutor Agent: joins the planner, tools and memory into one loop.
+"""The Quiz Tutor Agent: joins the planner, tools and memory into one loop.
 
 Loop: perceive -> plan -> select tool -> act -> evaluate -> give feedback
       -> update memory -> adapt (recommend the next quiz).
@@ -6,6 +6,8 @@ Loop: perceive -> plan -> select tool -> act -> evaluate -> give feedback
 A "session" is a plain dictionary holding one quiz in progress. It also
 keeps a trace of the agent's steps, which the app can show to the student.
 """
+import random
+
 from agent import memory, planner, tools
 
 
@@ -26,16 +28,16 @@ class QuizAgent:
                 return q
         raise tools.ToolError("This question is not part of the current quiz.")
 
-    def _generate(self, plan):
+    def _generate(self, plan, count):
         """Ask the optional LLM generator for questions and validate them."""
-        raw = self.generator(plan["topic"], plan["difficulty"], plan["n"])
+        raw = self.generator(plan["topic"], plan["difficulty"], count)
         questions = [
             q for q in raw
             if tools.is_valid_question(q) and q["topic"] == plan["topic"]
         ]
         if not questions:
-            raise tools.ToolError("The LLM produced no valid questions.")
-        return questions[: plan["n"]]
+            raise tools.ToolError("The generator produced no valid questions.")
+        return questions[:count]
 
     def start_quiz(self, topic=None, difficulty=None, n=None):
         """Perceive, plan, choose a tool and prepare the questions."""
@@ -61,16 +63,27 @@ class QuizAgent:
         tool_used = plan["tool"]
         self._log(session, "Select tool", tool_used)
         questions = None
-        if tool_used == "llm_generator":
+        if tool_used == "question_generator":
             try:
-                questions = self._generate(plan)
+                seen_ids = set(memory.get_seen_question_ids(plan["topic"]))
+                fresh = [q for q in tools.load_bank()
+                         if q["topic"] == plan["topic"]
+                         and q["difficulty"] == plan["difficulty"]
+                         and q["id"] not in seen_ids]
+                random.shuffle(fresh)
+                questions = fresh[: plan["n"]]
+                need = plan["n"] - len(questions)
+                if need > 0:
+                    questions += self._generate(plan, need)
+                random.shuffle(questions)
             except Exception as e:  # any LLM failure must not crash the app
                 session["notices"].append(
-                    "The LLM could not write questions, so the question bank is used instead."
+                    "The question generator failed, so the question bank is used instead."
                 )
                 self._log(session, "Error handled",
-                          f"LLM tool failed ({e}). Falling back to question_bank.")
+                          f"Question generator failed ({e}). Falling back to question_bank.")
                 tool_used = "question_bank"
+                questions = None
         if questions is None:
             seen = memory.get_seen_question_ids(plan["topic"])
             questions = tools.retrieve_questions(

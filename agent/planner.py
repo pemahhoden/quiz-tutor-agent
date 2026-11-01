@@ -1,4 +1,4 @@
-﻿"""The planner: decision rules of the Quiz Tutor Agent.
+"""The planner: decision rules of the Quiz Tutor Agent.
 
 These are plain rules (no LLM), so every decision is predictable, testable
 and easy to explain. Each decision also returns a short reason, which the
@@ -57,9 +57,9 @@ def choose_tool(topic, n, llm_available):
     if len(unseen) >= n:
         return "question_bank", "The question bank has enough new questions for this topic."
     if llm_available:
-        return "llm_generator", "The bank has too few new questions, so the LLM will write new ones."
+        return "question_generator", "The bank has too few new questions, so the question generator will create new ones."
     return "question_bank", (
-        "The bank has too few new questions and the LLM is not available, "
+        "The bank has too few new questions and no question generator is available, "
         "so some questions may repeat."
     )
 
@@ -92,7 +92,7 @@ def plan_quiz(topic=None, difficulty=None, n=None, llm_available=False):
         reasons.append(why)
 
     available = len([q for q in tools.load_bank() if q["topic"] == topic])
-    if n > available:
+    if n > available and not llm_available:
         reasons.append(f"Only {available} questions exist for {topic}, so the quiz has {available}.")
         n = available
 

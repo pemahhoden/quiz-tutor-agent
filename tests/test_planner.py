@@ -1,4 +1,4 @@
-﻿import json
+import json
 
 import pytest
 
@@ -81,7 +81,7 @@ def test_number_of_questions_is_capped(env):
 def test_tool_choice_depends_on_unseen_questions_and_llm(env):
     add_quiz("B", "easy", correct=3, ids=["b0", "b1", "b2"], total=3)
     assert planner.plan_quiz(topic="B", n=3)["tool"] == "question_bank"
-    assert planner.plan_quiz(topic="B", n=3, llm_available=True)["tool"] == "llm_generator"
+    assert planner.plan_quiz(topic="B", n=3, llm_available=True)["tool"] == "question_generator"
 
 
 def test_next_difficulty_edges():

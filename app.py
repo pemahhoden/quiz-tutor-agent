@@ -1,8 +1,9 @@
-﻿"""Streamlit UI for the Quiz Tutor Agent. Run with: streamlit run app.py"""
+"""Streamlit UI for the Quiz Tutor Agent. Run with: streamlit run app.py"""
 import streamlit as st
 
 from agent import memory, planner, tools
 from agent.agent import QuizAgent
+from agent.generators import generate_questions
 
 st.set_page_config(page_title="Quiz Tutor Agent", page_icon="🎓")
 
@@ -33,7 +34,7 @@ st.markdown(CSS, unsafe_allow_html=True)
 
 @st.cache_resource
 def get_agent():
-    return QuizAgent()
+    return QuizAgent(generator=generate_questions)
 
 
 agent = get_agent()
@@ -395,7 +396,7 @@ def page_progress():
                 texts = {}
             counts = wrong.groupby("question_id").size().sort_values(ascending=False)
             table = counts.rename("times wrong").reset_index()
-            table["question"] = table["question_id"].map(lambda i: texts.get(i, i))
+            table["question"] = table["question_id"].map(lambda i: texts.get(i, "(generated question)"))
             st.dataframe(table[["question", "times wrong"]], hide_index=True)
 
     with tab4:
@@ -414,7 +415,7 @@ choice = st.sidebar.radio("Menu", list(PAGES), label_visibility="collapsed",
                           key="menu")
 st.sidebar.divider()
 st.sidebar.caption(
-    "Questions: question bank + rules" + (" + LLM" if agent.generator else "")
+    "Questions: question bank + rules" + (" + generated questions" if agent.generator else "")
 )
 st.sidebar.caption("Memory: local SQLite database")
 
