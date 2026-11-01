@@ -1,18 +1,21 @@
-﻿"""Student notes: saved locally in SQLite and checked before use.
+"""Student notes: saved locally in SQLite and checked before use.
 
 Privacy: notes never leave the laptop. They live in the local database
 (which is excluded from GitHub) and can be deleted at any time.
 """
+import io
 from datetime import datetime
 
 from agent import memory, tools
 
 MIN_CHARS = 200
-MAX_CHARS = 20000
+MAX_CHARS = 50000
 MAX_TITLE = 60
 MAX_NOTES = 10
 MAX_FILE_BYTES = 100_000
-ALLOWED_FILES = (".txt", ".md")
+ALLOWED_FILES = (".txt", ".md", ".pdf", ".docx", ".pptx")
+MAX_DOC_BYTES = 10_000_000
+MAX_PDF_PAGES = 100
 
 
 def init_notes():
@@ -32,18 +35,100 @@ def clean_text(text):
     return "\n".join(line for line in lines if line)
 
 
+def _join_wrapped(text):
+    """Join lines that were wrapped in the middle of a sentence (common in PDFs)."""
+    paragraphs, buffer = [], ""
+    for line in text.splitlines():
+        line = line.strip()
+        if not line:
+            if buffer:
+                paragraphs.append(buffer)
+                buffer = ""
+            continue
+        buffer = f"{buffer} {line}" if buffer else line
+        if line.endswith((".", "!", "?", ":")):
+            paragraphs.append(buffer)
+            buffer = ""
+    if buffer:
+        paragraphs.append(buffer)
+    return "\n".join(paragraphs)
+
+
+def _read_pdf(data):
+    from pypdf import PdfReader
+
+    reader = PdfReader(io.BytesIO(data))
+    if reader.is_encrypted:
+        raise tools.ToolError("This PDF is password-protected.")
+    if len(reader.pages) > MAX_PDF_PAGES:
+        raise tools.ToolError(
+            f"This PDF has more than {MAX_PDF_PAGES} pages. Upload a smaller part."
+        )
+    pages = [page.extract_text() or "" for page in reader.pages]
+    return _join_wrapped("\n".join(pages))
+
+
+def _read_docx(data):
+    from docx import Document
+
+    doc = Document(io.BytesIO(data))
+    parts = [p.text for p in doc.paragraphs]
+    for table in doc.tables:
+        for row in table.rows:
+            parts.append(" ".join(cell.text for cell in row.cells))
+    return "\n".join(parts)
+
+
+def _read_pptx(data):
+    from pptx import Presentation
+
+    prs = Presentation(io.BytesIO(data))
+    parts = []
+    for slide in prs.slides:
+        for shape in slide.shapes:
+            if shape.has_text_frame:
+                parts.extend(p.text for p in shape.text_frame.paragraphs)
+    return "\n".join(parts)
+
+
+READERS = {".pdf": _read_pdf, ".docx": _read_docx, ".pptx": _read_pptx}
+
+
 def decode_upload(filename, data):
     """Turn an uploaded file into text, or raise a clear error."""
-    if not filename.lower().endswith(ALLOWED_FILES):
-        raise tools.ToolError("Only .txt and .md files are supported.")
-    if len(data) > MAX_FILE_BYTES:
-        raise tools.ToolError("The file is too large (maximum 100 KB).")
+    name = filename.lower()
+    if not name.endswith(ALLOWED_FILES):
+        raise tools.ToolError("Supported files are .txt, .md, .pdf, .docx and .pptx.")
+    if name.endswith((".txt", ".md")):
+        if len(data) > MAX_FILE_BYTES:
+            raise tools.ToolError("The file is too large (maximum 100 KB).")
+        try:
+            return data.decode("utf-8-sig")
+        except UnicodeDecodeError:
+            raise tools.ToolError(
+                "The file could not be read as text. Save it as UTF-8 and try again."
+            )
+    if len(data) > MAX_DOC_BYTES:
+        raise tools.ToolError("The file is too large (maximum 10 MB).")
+    reader = READERS[name[name.rindex("."):]]
     try:
-        return data.decode("utf-8-sig")
-    except UnicodeDecodeError:
+        text = reader(data)
+    except tools.ToolError:
+        raise
+    except ImportError:
         raise tools.ToolError(
-            "The file could not be read as text. Save it as UTF-8 and try again."
+            "Reading this file type needs an extra package. "
+            "Run: pip install pypdf python-docx python-pptx"
         )
+    except Exception:
+        raise tools.ToolError(
+            "The file could not be read. It may be damaged or password-protected."
+        )
+    if not text.strip():
+        raise tools.ToolError(
+            "No text was found in this file. Scanned pages and images are not supported."
+        )
+    return text
 
 
 def check_note(title, text):

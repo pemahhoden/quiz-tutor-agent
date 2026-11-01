@@ -1,4 +1,4 @@
-﻿import pytest
+import pytest
 
 from agent import memory, notes, tools
 
@@ -26,7 +26,7 @@ def test_short_note_is_rejected(fresh_db):
 
 def test_long_note_is_rejected(fresh_db):
     with pytest.raises(tools.ToolError):
-        notes.add_note("Long", "word " * 5000)
+        notes.add_note("Long", "word " * 12000)
 
 
 def test_title_is_required_and_limited(fresh_db):

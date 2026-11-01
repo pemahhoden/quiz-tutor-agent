@@ -1,7 +1,7 @@
 """Streamlit UI for the Quiz Tutor Agent. Run with: streamlit run app.py"""
 import streamlit as st
 
-from agent import memory, planner, tools
+from agent import memory, notes, notes_quiz, planner, tools
 from agent.agent import QuizAgent
 from agent.generators import generate_questions
 
@@ -206,13 +206,14 @@ def show_setup():
     try:
         topics = tools.list_topics()
         topic_cards(topics)
+        my_topics = [notes_quiz.topic_name(n["title"]) for n in notes.list_notes()]
     except tools.ToolError as e:
         st.error(f"Could not load the question bank: {e}")
         return
     with st.container(border=True):
         st.markdown("**1. Topic**")
         topic_pick = st.pills(
-            "Topic", [AUTO] + topics, default=AUTO, selection_mode="single",
+            "Topic", [AUTO] + topics + my_topics, default=AUTO, selection_mode="single",
             format_func=lambda t: t if t == AUTO else f"{TOPIC_ICONS.get(t, '📚')} {t}",
             label_visibility="collapsed", key="topic_pick",
         )
@@ -407,8 +408,45 @@ def page_progress():
         st.dataframe(shown, hide_index=True)
 
 
+def page_notes():
+    st.header("My Notes")
+    st.write("Add your own notes and the agent will make quiz questions from them. "
+             "Your notes stay on this laptop and you can delete them at any time.")
+    with st.container(border=True):
+        title = st.text_input("Title", max_chars=notes.MAX_TITLE)
+        upload = st.file_uploader("Upload a file (optional): .txt, .md, .pdf, .docx or .pptx",
+                                  type=["txt", "md", "pdf", "docx", "pptx"])
+        pasted = st.text_area("Or paste your notes here", height=200)
+        st.caption("If you do both, the uploaded file is used. Notes work best when "
+                   "they are written in full sentences, for example "
+                   "'Overfitting is when ...'.")
+        if st.button("Save notes", type="primary"):
+            try:
+                text = (notes.decode_upload(upload.name, upload.getvalue())
+                        if upload else pasted)
+                notes.add_note(title, text)
+            except tools.ToolError as e:
+                st.error(str(e))
+            else:
+                st.success("Notes saved. Open the Quiz page and choose them as a topic.")
+    st.subheader("Your saved notes")
+    saved = notes.list_notes()
+    if not saved:
+        st.info("No notes yet.")
+    for note in saved:
+        with st.container(border=True):
+            st.markdown(f"**{note['title']}**")
+            st.caption(f"{len(note['content'])} characters, saved {note['created_at']}")
+            with st.expander("Preview"):
+                st.write(note["content"][:500]
+                         + ("..." if len(note["content"]) > 500 else ""))
+            if st.button("Delete", key=f"del_{note['id']}"):
+                notes.delete_note(note["id"])
+                st.rerun()
+
+
 # ---------- navigation ----------
-PAGES = {HOME: page_home, "📝 Quiz": page_quiz, "📈 Progress": page_progress}
+PAGES = {HOME: page_home, "📝 Quiz": page_quiz, "📈 Progress": page_progress, "📓 My Notes": page_notes}
 
 st.sidebar.title("🎓 Quiz Tutor Agent")
 choice = st.sidebar.radio("Menu", list(PAGES), label_visibility="collapsed",

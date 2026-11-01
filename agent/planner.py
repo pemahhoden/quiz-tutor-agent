@@ -4,7 +4,7 @@ These are plain rules (no LLM), so every decision is predictable, testable
 and easy to explain. Each decision also returns a short reason, which the
 app shows to the student as "Why this quiz?".
 """
-from agent import memory, tools
+from agent import memory, notes, notes_quiz, tools
 
 HIGH_SCORE = 80   # last 3 scores all at or above this -> harder questions
 LOW_SCORE = 50    # last score below this -> easier questions
@@ -73,13 +73,15 @@ def plan_quiz(topic=None, difficulty=None, n=None, llm_available=False):
     if not isinstance(n, int) or not 1 <= n <= MAX_N:
         raise tools.ToolError(f"Number of questions must be between 1 and {MAX_N}.")
 
-    topics = tools.list_topics()
+    topics = tools.list_topics() + [
+        notes_quiz.topic_name(n["title"]) for n in notes.list_notes()
+    ]
     stats = memory.get_topic_stats()
     history = memory.get_history()
     recent = memory.get_recent_scores(3)
     reasons = []
 
-    topic, why = choose_topic(topics, stats, topic)
+    topic, why = choose_topic(topics, stats[stats["topic"].isin(topics)], topic)
     reasons.append(why)
 
     if difficulty is not None:
@@ -91,12 +93,19 @@ def plan_quiz(topic=None, difficulty=None, n=None, llm_available=False):
         difficulty, why = next_difficulty(history.iloc[-1]["difficulty"], recent)
         reasons.append(why)
 
+    is_notes = topic.startswith(notes_quiz.TOPIC_PREFIX)
     available = len([q for q in tools.load_bank() if q["topic"] == topic])
-    if n > available and not llm_available:
+    if n > available and not llm_available and not is_notes:
         reasons.append(f"Only {available} questions exist for {topic}, so the quiz has {available}.")
         n = available
 
-    tool, why = choose_tool(topic, n, llm_available)
+    if is_notes:
+        tool, why = (
+            "notes_generator",
+            "You are studying your own notes, so the questions are made from them.",
+        )
+    else:
+        tool, why = choose_tool(topic, n, llm_available)
     reasons.append(why)
 
     if recent and sum(recent) / len(recent) < LOW_SCORE:

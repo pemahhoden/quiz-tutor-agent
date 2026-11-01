@@ -8,7 +8,7 @@ keeps a trace of the agent's steps, which the app can show to the student.
 """
 import random
 
-from agent import memory, planner, tools
+from agent import memory, notes_quiz, planner, tools
 
 
 class QuizAgent:
@@ -63,7 +63,11 @@ class QuizAgent:
         tool_used = plan["tool"]
         self._log(session, "Select tool", tool_used)
         questions = None
-        if tool_used == "question_generator":
+        if tool_used == "notes_generator":
+            questions = notes_quiz.generate_for_topic(
+                plan["topic"], plan["difficulty"], plan["n"]
+            )
+        elif tool_used == "question_generator":
             try:
                 seen_ids = set(memory.get_seen_question_ids(plan["topic"]))
                 fresh = [q for q in tools.load_bank()
