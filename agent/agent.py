@@ -8,7 +8,7 @@ keeps a trace of the agent's steps, which the app can show to the student.
 """
 import random
 
-from agent import memory, notes_quiz, planner, tools
+from agent import guardrails, memory, notes_quiz, planner, tools
 
 
 class QuizAgent:
@@ -33,7 +33,7 @@ class QuizAgent:
         raw = self.generator(plan["topic"], plan["difficulty"], count)
         questions = [
             q for q in raw
-            if tools.is_valid_question(q) and q["topic"] == plan["topic"]
+            if guardrails.check_question(q)[0] and q["topic"] == plan["topic"]
         ]
         if not questions:
             raise tools.ToolError("The generator produced no valid questions.")
@@ -92,6 +92,11 @@ class QuizAgent:
             seen = memory.get_seen_question_ids(plan["topic"])
             questions = tools.retrieve_questions(
                 plan["topic"], plan["difficulty"], plan["n"], exclude_ids=seen
+            )
+        questions = guardrails.filter_questions(questions)
+        if not questions:
+            raise tools.ToolError(
+                "No valid questions could be prepared. Please try again."
             )
         session["tool_used"] = tool_used
         session["questions"] = questions

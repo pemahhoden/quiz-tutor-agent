@@ -1,7 +1,7 @@
 """Streamlit UI for the Quiz Tutor Agent. Run with: streamlit run app.py"""
 import streamlit as st
 
-from agent import memory, notes, notes_quiz, planner, tools
+from agent import guardrails, memory, notes, notes_quiz, planner, tools
 from agent.agent import QuizAgent
 from agent.generators import generate_questions
 
@@ -456,5 +456,18 @@ st.sidebar.caption(
     "Questions: question bank + rules" + (" + generated questions" if agent.generator else "")
 )
 st.sidebar.caption("Memory: local SQLite database")
+
+
+def erase_everything():
+    guardrails.erase_all_data()
+    reset_quiz()
+    st.session_state.confirm_erase = False
+    st.session_state.menu = HOME
+
+
+with st.sidebar.expander("Privacy"):
+    st.caption("Your quizzes and notes are stored only on this laptop.")
+    confirm = st.checkbox("I want to delete all my data", key="confirm_erase")
+    st.button("Delete all my data", disabled=not confirm, on_click=erase_everything)
 
 PAGES[choice]()
