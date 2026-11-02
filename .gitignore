@@ -1,3 +1,5 @@
 .venv/
 __pycache__/
 *.db
+evaluation/sample_notes/
+evaluation/results/notes_questions_to_rate.csv

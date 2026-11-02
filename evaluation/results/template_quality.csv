@@ -1,0 +1,10 @@
+topic,difficulty,questions,passed_checks,unique
+Python basics,easy,300,300,251
+Python basics,medium,300,300,300
+Python basics,hard,300,300,90
+Statistics,easy,300,300,300
+Statistics,medium,300,300,32
+Statistics,hard,300,300,36
+Machine learning basics,easy,300,300,149
+Machine learning basics,medium,300,300,167
+Machine learning basics,hard,300,300,300

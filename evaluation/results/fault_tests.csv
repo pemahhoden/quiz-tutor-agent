@@ -1,0 +1,18 @@
+id,description,expected,handled
+R01,Unknown topic,clear error message,True
+R02,Invalid difficulty,clear error message,True
+R03,Zero questions requested,clear error message,True
+R04,Too many questions requested,clear error message,True
+R05,Question bank file missing,clear error message,True
+R06,Question bank is not valid JSON,clear error message,True
+R07,Notes too short,clear error message,True
+R08,Unsupported file type,clear error message,True
+R09,Damaged PDF upload,clear error message,True
+R10,Notes without usable sentences,clear error message,True
+R11,Answer for an unknown question,clear error message,True
+R12,Answer option out of range,clear error message,True
+R13,Finish quiz before answering,clear error message,True
+R14,Same question answered twice,clear error message,True
+F01,Generator crashes,fallback to the question bank with a notice,True
+F02,Generator returns junk,fallback to the question bank with a notice,True
+F03,Generator returns low-quality questions,fallback to the question bank with a notice,True

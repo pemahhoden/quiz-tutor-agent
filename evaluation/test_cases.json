@@ -1,0 +1,38 @@
+﻿{
+  "tool_selection": [
+    {"id": "T01", "description": "Enough unseen bank questions", "topic": "Statistics", "n": 5, "unseen": "all", "generator": true, "expected": "question_bank"},
+    {"id": "T02", "description": "Bank exhausted, generator available", "topic": "Statistics", "n": 5, "unseen": 0, "generator": true, "expected": "question_generator"},
+    {"id": "T03", "description": "Bank exhausted, no generator", "topic": "Statistics", "n": 5, "unseen": 0, "generator": false, "expected": "question_bank"},
+    {"id": "T04", "description": "Quiz larger than the topic bank", "topic": "Python basics", "n": 10, "unseen": "all", "generator": true, "expected": "question_generator"},
+    {"id": "T05", "description": "4 unseen left, 5 needed", "topic": "Machine learning basics", "n": 5, "unseen": 4, "generator": true, "expected": "question_generator"},
+    {"id": "T06", "description": "Exactly 5 unseen left, 5 needed", "topic": "Machine learning basics", "n": 5, "unseen": 5, "generator": true, "expected": "question_bank"},
+    {"id": "T07", "description": "Student chose their own notes", "topic": "NOTES", "n": 5, "unseen": "all", "generator": true, "expected": "notes_generator"},
+    {"id": "T08", "description": "Own notes, no generator", "topic": "NOTES", "n": 5, "unseen": "all", "generator": false, "expected": "notes_generator"},
+    {"id": "T09", "description": "Small quiz, small bank, no generator", "topic": "Python basics", "n": 3, "unseen": "all", "generator": false, "expected": "question_bank"},
+    {"id": "T10", "description": "Large quiz fits in the bank, no generator", "topic": "Statistics", "n": 10, "unseen": "all", "generator": false, "expected": "question_bank"},
+    {"id": "T11", "description": "9 unseen left, 10 needed", "topic": "Statistics", "n": 10, "unseen": 9, "generator": true, "expected": "question_generator"},
+    {"id": "T12", "description": "Exactly 10 unseen left, 10 needed", "topic": "Statistics", "n": 10, "unseen": 10, "generator": true, "expected": "question_bank"}
+  ],
+  "difficulty": [
+    {"id": "D01", "description": "Three high scores raise difficulty", "last": "medium", "scores": [90, 85, 95], "expected": "hard"},
+    {"id": "D02", "description": "Already at the hardest level", "last": "hard", "scores": [90, 90, 90], "expected": "hard"},
+    {"id": "D03", "description": "Easy goes up to medium", "last": "easy", "scores": [90, 90, 90], "expected": "medium"},
+    {"id": "D04", "description": "Low last score lowers difficulty", "last": "medium", "scores": [40], "expected": "easy"},
+    {"id": "D05", "description": "Already at the easiest level", "last": "easy", "scores": [20], "expected": "easy"},
+    {"id": "D06", "description": "Mixed scores keep difficulty", "last": "medium", "scores": [70, 60, 65], "expected": "medium"},
+    {"id": "D07", "description": "Two high scores are not enough", "last": "medium", "scores": [90, 90], "expected": "medium"},
+    {"id": "D08", "description": "Low last score after good ones", "last": "hard", "scores": [90, 60, 45], "expected": "medium"},
+    {"id": "D09", "description": "Score of exactly 50 is not low", "last": "medium", "scores": [50], "expected": "medium"},
+    {"id": "D10", "description": "No history keeps difficulty", "last": "medium", "scores": [], "expected": "medium"},
+    {"id": "D11", "description": "Exactly 80 counts as high", "last": "easy", "scores": [80, 80, 80], "expected": "medium"},
+    {"id": "D12", "description": "Only the last three scores count", "last": "easy", "scores": [30, 85, 90, 95], "expected": "medium"}
+  ],
+  "topic": [
+    {"id": "P01", "description": "Weak topic becomes revision", "topics": ["Machine learning basics", "Python basics", "Statistics"], "stats": [{"topic": "Statistics", "answered": 10, "accuracy": 40}, {"topic": "Python basics", "answered": 10, "accuracy": 90}], "requested": null, "expected": "Statistics"},
+    {"id": "P02", "description": "All good, pick the untouched topic", "topics": ["Machine learning basics", "Python basics", "Statistics"], "stats": [{"topic": "Python basics", "answered": 10, "accuracy": 85}, {"topic": "Statistics", "answered": 10, "accuracy": 90}], "requested": null, "expected": "Machine learning basics"},
+    {"id": "P03", "description": "All good, pick the least practised", "topics": ["Machine learning basics", "Python basics", "Statistics"], "stats": [{"topic": "Python basics", "answered": 12, "accuracy": 85}, {"topic": "Statistics", "answered": 4, "accuracy": 90}, {"topic": "Machine learning basics", "answered": 12, "accuracy": 95}], "requested": null, "expected": "Statistics"},
+    {"id": "P04", "description": "No history, first topic", "topics": ["Machine learning basics", "Python basics", "Statistics"], "stats": [], "requested": null, "expected": "Machine learning basics"},
+    {"id": "P05", "description": "Student choice is respected", "topics": ["Machine learning basics", "Python basics", "Statistics"], "stats": [{"topic": "Machine learning basics", "answered": 10, "accuracy": 30}], "requested": "Statistics", "expected": "Statistics"},
+    {"id": "P06", "description": "Exactly 70 is not weak", "topics": ["Machine learning basics", "Python basics", "Statistics"], "stats": [{"topic": "Python basics", "answered": 10, "accuracy": 70}, {"topic": "Statistics", "answered": 5, "accuracy": 75}, {"topic": "Machine learning basics", "answered": 10, "accuracy": 90}], "requested": null, "expected": "Statistics"}
+  ]
+}

@@ -1,4 +1,14 @@
 """Streamlit UI for the Quiz Tutor Agent. Run with: streamlit run app.py"""
+import json
+import os
+import re
+import subprocess
+import sys
+import tempfile
+import time
+from pathlib import Path
+
+import pandas as pd
 import streamlit as st
 
 from agent import guardrails, memory, notes, notes_quiz, planner, tools
@@ -445,8 +455,142 @@ def page_notes():
                 st.rerun()
 
 
+EVAL_ROOT = Path(__file__).resolve().parent
+RESULTS_DIR = EVAL_ROOT / "evaluation" / "results"
+EVAL_TABLES = {
+    "Decision tests": "decision_tests.csv",
+    "Fault tests": "fault_tests.csv",
+    "Quiz runs": "quiz_runs.csv",
+    "Generated question quality": "template_quality.csv",
+    "Notes question quality": "notes_quality.csv",
+}
+
+
+def run_evaluation(include_notes):
+    """Run the evaluation in a separate process, so the app's own data is safe."""
+    with tempfile.TemporaryDirectory() as tmp:
+        env = dict(os.environ)
+        if include_notes:
+            for note in notes.list_notes():
+                name = re.sub(r"[^A-Za-z0-9_-]+", "_", note["title"])[:40]
+                path = Path(tmp) / f"{name}_{note['id']}.txt"
+                path.write_text(note["content"], encoding="utf-8")
+            env["EVAL_NOTES_DIR"] = tmp
+        return subprocess.run(
+            [sys.executable, "-m", "evaluation.run_eval"], cwd=EVAL_ROOT, env=env,
+            capture_output=True, text=True, encoding="utf-8", errors="replace",
+            timeout=900,
+        )
+
+
+def show_rating_tab():
+    sheet = RESULTS_DIR / "notes_questions_to_rate.csv"
+    if not sheet.exists():
+        st.info("No rating sheet yet. Click 'Run evaluation' first.")
+        return
+    st.write("Rate each question from 1 to 5: 1 = confusing or wrong, "
+             "5 = clear and relevant to the notes.")
+    df = pd.read_csv(sheet, encoding="utf-8-sig")
+    df["rating_1_to_5"] = pd.to_numeric(df["rating_1_to_5"], errors="coerce")
+    edited = st.data_editor(
+        df, hide_index=True, key="rating_editor",
+        disabled=[c for c in df.columns if c != "rating_1_to_5"],
+        column_config={"rating_1_to_5": st.column_config.NumberColumn(
+            "Your rating (1-5)", min_value=1, max_value=5, step=1)},
+    )
+    if st.button("Save ratings"):
+        edited.to_csv(sheet, index=False, encoding="utf-8-sig")
+        st.success("Ratings saved. Run the evaluation again to add them to metrics.json.")
+    rated = pd.to_numeric(edited["rating_1_to_5"], errors="coerce").dropna()
+    if len(rated):
+        st.metric("Average rating", f"{rated.mean():.2f} / 5",
+                  help=f"{len(rated)} questions rated")
+    if st.button("Start a new rating sheet"):
+        sheet.unlink()
+        st.info("Deleted. Click 'Run evaluation' to make a new sheet.")
+
+
+def show_evaluation_results():
+    metrics_path = RESULTS_DIR / "metrics.json"
+    if not metrics_path.exists():
+        st.info("No results yet. Click 'Run evaluation'.")
+        return
+    metrics = json.loads(metrics_path.read_text(encoding="utf-8"))
+    when = time.strftime("%d %b %Y, %H:%M",
+                         time.localtime(metrics_path.stat().st_mtime))
+    st.caption(f"Last run: {when}. {metrics['quiz_runs']} quiz runs, "
+               f"random seed {metrics['seed']}.")
+    tab1, tab2, tab3, tab4 = st.tabs(
+        ["Summary", "Charts", "Test details", "Rate questions"])
+
+    with tab1:
+        cols = st.columns(3)
+        for i, (name, value) in enumerate(metrics["rates"].items()):
+            cols[i % 3].metric(name, "n/a" if value is None else f"{value:.1f}%")
+        st.subheader("Speed (milliseconds)")
+        st.dataframe(pd.DataFrame({"value": metrics["latency_ms"]}))
+        st.subheader("Tools used")
+        st.bar_chart(pd.Series(metrics["tool_usage"]))
+        st.write(f"Unique generated questions: "
+                 f"{metrics['generated_unique_share_percent']}%")
+        st.write(f"Notes questions at the requested level: "
+                 f"{metrics['notes_level_match_percent']}%")
+        st.write(f"Notes quizzes that failed: {metrics['notes_failed_calls']} "
+                 f"of {metrics['notes_calls']}")
+        if "notes_human_rating" in metrics:
+            r = metrics["notes_human_rating"]
+            st.write(f"Your rating of notes questions: {r['mean_1_to_5']} / 5 "
+                     f"({r['rated_questions']} rated)")
+
+    with tab2:
+        for name in ["success_rates", "latency", "tool_usage", "question_variety"]:
+            path = RESULTS_DIR / "charts" / f"{name}.png"
+            if path.exists():
+                st.image(str(path))
+
+    with tab3:
+        choice = st.radio("Show", list(EVAL_TABLES), horizontal=True)
+        path = RESULTS_DIR / EVAL_TABLES[choice]
+        if path.exists():
+            table = pd.read_csv(path)
+            if st.checkbox("Show only problems (failed or unhandled)"):
+                if "correct" in table.columns:
+                    table = table[~table["correct"]]
+                if "handled" in table.columns:
+                    table = table[~table["handled"]]
+            st.dataframe(table, hide_index=True)
+
+    with tab4:
+        show_rating_tab()
+
+
+def page_evaluation():
+    st.header("Evaluation")
+    st.write("This page measures the agent on test cases and shows the real "
+             "results. It uses a temporary database, so your own quizzes and "
+             "notes are not changed.")
+    my_notes = notes.list_notes()
+    include = st.checkbox("Also use my saved notes (from the My Notes page)",
+                          value=False, disabled=not my_notes)
+    st.caption("The results then contain sentences from your notes. They stay on "
+               "this laptop, and the rating sheet is kept out of GitHub.")
+    if st.button("Run evaluation", type="primary"):
+        with st.spinner("Running the evaluation. This takes one to three minutes..."):
+            try:
+                proc = run_evaluation(include)
+            except subprocess.TimeoutExpired:
+                st.error("The evaluation took too long and was stopped.")
+                return
+        if proc.returncode != 0:
+            st.error("The evaluation failed. Details below.")
+            st.code((proc.stderr or proc.stdout)[-2000:])
+            return
+        st.success("Evaluation finished.")
+    show_evaluation_results()
+
+
 # ---------- navigation ----------
-PAGES = {HOME: page_home, "📝 Quiz": page_quiz, "📈 Progress": page_progress, "📓 My Notes": page_notes}
+PAGES = {HOME: page_home, "📝 Quiz": page_quiz, "📈 Progress": page_progress, "📓 My Notes": page_notes, "📊 Evaluation": page_evaluation}
 
 st.sidebar.title("🎓 Quiz Tutor Agent")
 choice = st.sidebar.radio("Menu", list(PAGES), label_visibility="collapsed",

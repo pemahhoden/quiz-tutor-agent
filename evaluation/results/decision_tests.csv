@@ -1,0 +1,31 @@
+kind,id,description,expected,actual,correct
+tool,T01,Enough unseen bank questions,question_bank,question_bank,True
+tool,T02,"Bank exhausted, generator available",question_generator,question_generator,True
+tool,T03,"Bank exhausted, no generator",question_bank,question_bank,True
+tool,T04,Quiz larger than the topic bank,question_generator,question_generator,True
+tool,T05,"4 unseen left, 5 needed",question_generator,question_generator,True
+tool,T06,"Exactly 5 unseen left, 5 needed",question_bank,question_bank,True
+tool,T07,Student chose their own notes,notes_generator,notes_generator,True
+tool,T08,"Own notes, no generator",notes_generator,notes_generator,True
+tool,T09,"Small quiz, small bank, no generator",question_bank,question_bank,True
+tool,T10,"Large quiz fits in the bank, no generator",question_bank,question_bank,True
+tool,T11,"9 unseen left, 10 needed",question_generator,question_generator,True
+tool,T12,"Exactly 10 unseen left, 10 needed",question_bank,question_bank,True
+difficulty,D01,Three high scores raise difficulty,hard,hard,True
+difficulty,D02,Already at the hardest level,hard,hard,True
+difficulty,D03,Easy goes up to medium,medium,medium,True
+difficulty,D04,Low last score lowers difficulty,easy,easy,True
+difficulty,D05,Already at the easiest level,easy,easy,True
+difficulty,D06,Mixed scores keep difficulty,medium,medium,True
+difficulty,D07,Two high scores are not enough,medium,medium,True
+difficulty,D08,Low last score after good ones,medium,medium,True
+difficulty,D09,Score of exactly 50 is not low,medium,medium,True
+difficulty,D10,No history keeps difficulty,medium,medium,True
+difficulty,D11,Exactly 80 counts as high,medium,medium,True
+difficulty,D12,Only the last three scores count,medium,medium,True
+topic,P01,Weak topic becomes revision,Statistics,Statistics,True
+topic,P02,"All good, pick the untouched topic",Machine learning basics,Machine learning basics,True
+topic,P03,"All good, pick the least practised",Statistics,Statistics,True
+topic,P04,"No history, first topic",Machine learning basics,Machine learning basics,True
+topic,P05,Student choice is respected,Statistics,Statistics,True
+topic,P06,Exactly 70 is not weak,Statistics,Statistics,True
