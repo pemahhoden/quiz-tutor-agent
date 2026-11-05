@@ -7,15 +7,17 @@ A "session" is a plain dictionary holding one quiz in progress. It also
 keeps a trace of the agent's steps, which the app can show to the student.
 """
 import random
+import time
 
 from agent import guardrails, memory, notes_quiz, planner, tools
 
 
 class QuizAgent:
-    def __init__(self, generator=None):
+    def __init__(self, generator=None, llm=None):
         """generator: optional function (topic, difficulty, n) -> list of questions."""
         memory.init_db()
         self.generator = generator
+        self.llm = llm
 
     @staticmethod
     def _log(session, step, detail):
@@ -129,6 +131,50 @@ class QuizAgent:
                   f"{question_id}: {'correct' if result['is_correct'] else 'wrong'}.")
         return result
 
+    def explain_answer(self, session, question_id):
+        """LLM tool: explain a wrong answer in simple words.
+
+        The LLM only gets the stored explanation to work from. If it is slow,
+        offline or fails the safety check, the stored explanation is used.
+        """
+        q = self._find(session, question_id)
+        attempt = session["attempts"].get(question_id)
+        if attempt is None:
+            raise tools.ToolError("Answer this question first.")
+        result = attempt["result"]
+        stored = result["explanation"]
+        text, source = stored, "stored"
+        note = "The AI tutor is not available, so the saved explanation is shown."
+        start = time.perf_counter()
+        if self.llm is not None:
+            try:
+                text = self.llm.explain(
+                    q, q["options"][attempt["chosen"]], result["correct_text"], stored
+                )
+                source, note = "llm", ""
+            except Exception as e:  # any LLM problem falls back to the stored text
+                note = f"The AI tutor could not help ({e}), so the saved explanation is shown."
+        seconds = round(time.perf_counter() - start, 1)
+        self._log(session, "LLM tool",
+                  f"Explanation for {question_id}: {source} in {seconds}s.")
+        return {"text": text, "source": source, "seconds": seconds, "note": note}
+
+    def study_advice(self):
+        """LLM tool: short study tips written from the student's real results."""
+        progress = tools.analyse_progress()
+        plan = planner.recommend_next(llm_available=self.generator is not None)
+        text, source = plan["message"], "rules"
+        note = "The AI tutor is not available, so the rule-based advice is shown."
+        start = time.perf_counter()
+        if self.llm is not None:
+            try:
+                text = self.llm.advice(progress, plan["message"])
+                source, note = "llm", ""
+            except Exception as e:
+                note = f"The AI tutor could not help ({e}), so the rule-based advice is shown."
+        seconds = round(time.perf_counter() - start, 1)
+        return {"text": text, "source": source, "seconds": seconds, "note": note}
+
     def finish_quiz(self, session):
         """7. UPDATE MEMORY and 8. ADAPT (recommend the next quiz)."""
         if session.get("finished"):
@@ -157,6 +203,7 @@ class QuizAgent:
         for q in questions:
             a = session["attempts"][q["id"]]
             review.append({
+                "id": q["id"],
                 "question": q["question"],
                 "options": q["options"],
                 "chosen": a["chosen"],

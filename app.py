@@ -11,7 +11,7 @@ from pathlib import Path
 import pandas as pd
 import streamlit as st
 
-from agent import guardrails, memory, notes, notes_quiz, planner, tools
+from agent import guardrails, llm, memory, notes, notes_quiz, planner, tools
 from agent.agent import QuizAgent
 from agent.generators import generate_questions
 
@@ -44,13 +44,13 @@ st.markdown(CSS, unsafe_allow_html=True)
 
 @st.cache_resource
 def get_agent():
-    return QuizAgent(generator=generate_questions)
+    return QuizAgent(generator=generate_questions, llm=llm)
 
 
 agent = get_agent()
 
 for key, default in [("session", None), ("result", None), ("quiz_no", 0),
-                     ("hint_text", {}), ("celebrated", 0), ("menu", HOME)]:
+                     ("hint_text", {}), ("celebrated", 0), ("menu", HOME), ("ai_text", {})]:
     if key not in st.session_state:
         st.session_state[key] = default
 
@@ -344,9 +344,32 @@ def show_results():
             if r["hint_used"]:
                 st.caption("You used a hint on this question.")
             st.info(r["explanation"])
+            if not r["is_correct"] and agent.llm is not None:
+                ai_key = f"ai_{st.session_state.quiz_no}_{r['id']}"
+                if st.button("Explain simply (AI)", key="btn_" + ai_key):
+                    with st.spinner("The AI tutor is thinking (10 to 30 seconds)..."):
+                        st.session_state.ai_text[ai_key] = agent.explain_answer(
+                            session, r["id"])
+                if ai_key in st.session_state.ai_text:
+                    out = st.session_state.ai_text[ai_key]
+                    if out["source"] == "llm":
+                        st.success("AI tutor: " + out["text"])
+                        st.caption(f"Written by a small local model in {out['seconds']} s.")
+                    else:
+                        st.warning(out["note"])
 
     st.subheader("What the agent recommends next")
     st.success(result["recommendation"]["message"])
+    advice_key = f"advice_{st.session_state.quiz_no}"
+    if agent.llm is not None and st.button("Get AI study advice", key="ai_advice"):
+        with st.spinner("The AI tutor is thinking (10 to 30 seconds)..."):
+            st.session_state.ai_text[advice_key] = agent.study_advice()
+    if advice_key in st.session_state.ai_text:
+        out = st.session_state.ai_text[advice_key]
+        if out["source"] == "llm":
+            st.success("AI tutor: " + out["text"])
+        else:
+            st.info(out["note"] + " " + out["text"])
     with st.expander("🔍 What did the agent do? (trace)"):
         for step in session["trace"]:
             st.write(f"**{step['step']}:** {step['detail']}")
@@ -600,6 +623,9 @@ st.sidebar.caption(
     "Questions: question bank + rules" + (" + generated questions" if agent.generator else "")
 )
 st.sidebar.caption("Memory: local SQLite database")
+st.sidebar.caption(
+    "AI tutor: " + ("on (local model)" if llm.available() else "off (start Ollama)")
+)
 
 
 def erase_everything():
