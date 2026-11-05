@@ -147,3 +147,8 @@ def test_study_advice_uses_the_llm_or_falls_back(fresh_db):
     assert QuizAgent(llm=GoodLLM()).study_advice()["source"] == "llm"
     out = QuizAgent(llm=BrokenLLM()).study_advice()
     assert out["source"] == "rules" and out["text"].startswith("Next:")
+
+
+def test_cut_off_sentences_are_trimmed():
+    cut = "This is the first full sentence about the topic. And this one is cut o"
+    assert llm.clean_reply(cut) == "This is the first full sentence about the topic."

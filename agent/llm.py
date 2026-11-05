@@ -1,4 +1,4 @@
-﻿"""Small local LLM (Ollama) used for explanations and study advice.
+"""Small local LLM (Ollama) used for explanations and study advice.
 
 No API key and no cloud: the model runs on this laptop. The LLM never decides
 anything. It only rewrites facts that the agent already has, and every reply
@@ -40,7 +40,8 @@ def ask(prompt, timeout=TIMEOUT_SECONDS):
     """Send one prompt to the local model and return its text."""
     body = json.dumps({
         "model": MODEL, "prompt": prompt, "stream": False, "keep_alive": "10m",
-        "options": {"temperature": 0.2, "num_predict": 120},
+        "options": {"temperature": 0.2, "num_predict": 80, "num_ctx": 1024,
+                    "num_thread": 3},
     }).encode("utf-8")
     request = urllib.request.Request(
         HOST + "/api/generate", data=body,
@@ -59,6 +60,10 @@ def clean_reply(text):
     text = re.sub(r"\s+", " ", text or "").strip().replace("`", "")
     if len(text) < 15:
         raise tools.ToolError("the AI reply was empty")
+    if text and text[-1] not in ".!?":
+        end = max(text.rfind(". "), text.rfind("! "), text.rfind("? "))
+        if end > 40:
+            text = text[: end + 1]
     if len(text) > MAX_CHARS:
         cut = text[:MAX_CHARS]
         end = max(cut.rfind(". "), cut.rfind("! "), cut.rfind("? "))
