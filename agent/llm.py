@@ -16,6 +16,8 @@ HOST = "http://localhost:11434"
 MODEL = "qwen2.5:0.5b"
 TIMEOUT_SECONDS = 90
 MAX_CHARS = 500
+# Model settings. The AI tutor test compares two settings before one is kept.
+OPTIONS = {"temperature": 0.2, "num_predict": 80}
 NUMBER = re.compile(r"\d+(?:\.\d+)?")
 _cache = {"time": 0.0, "value": False}
 
@@ -40,8 +42,7 @@ def ask(prompt, timeout=TIMEOUT_SECONDS):
     """Send one prompt to the local model and return its text."""
     body = json.dumps({
         "model": MODEL, "prompt": prompt, "stream": False, "keep_alive": "10m",
-        "options": {"temperature": 0.2, "num_predict": 80, "num_ctx": 1024,
-                    "num_thread": 3},
+        "options": OPTIONS,
     }).encode("utf-8")
     request = urllib.request.Request(
         HOST + "/api/generate", data=body,

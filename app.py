@@ -587,6 +587,53 @@ def show_evaluation_results():
         show_rating_tab()
 
 
+def run_llm_test():
+    return subprocess.run(
+        [sys.executable, "-m", "evaluation.llm_eval"], cwd=EVAL_ROOT,
+        capture_output=True, text=True, encoding="utf-8", errors="replace",
+        timeout=2400,
+    )
+
+
+def show_llm_test():
+    st.subheader("AI tutor test")
+    st.write("Measures the local AI model: speed, how often its reply is rejected, "
+             "and whether the reply names the correct answer. It compares two model "
+             "settings and takes about 10 to 20 minutes on a small laptop. "
+             "Ollama must be running.")
+    st.caption("Close other apps first. The speed depends on free memory.")
+    if st.button("Run AI tutor test"):
+        with st.spinner("Testing the AI tutor. This is slow on a small laptop..."):
+            try:
+                proc = run_llm_test()
+            except subprocess.TimeoutExpired:
+                st.error("The test took too long and was stopped.")
+                return
+        if proc.returncode != 0:
+            st.error("The AI test failed. Details below.")
+            st.code((proc.stderr or proc.stdout)[-2000:])
+            return
+    path = RESULTS_DIR / "llm_results.json"
+    if path.exists():
+        res = json.loads(path.read_text(encoding="utf-8"))
+        if not res.get("available", True):
+            st.warning(res["message"])
+        else:
+            st.dataframe(pd.DataFrame(res["configs"]).T)
+            st.write(f"Model: {res['model']}. {res['calls_per_config']} timed calls per "
+                     f"setting, plus one warm-up call each. Faster setting: "
+                     f"{res['faster_setting']}.")
+            chart = RESULTS_DIR / "charts" / "llm_speed.png"
+            if chart.exists():
+                st.image(str(chart))
+            table = RESULTS_DIR / "llm_calls.csv"
+            if table.exists():
+                with st.expander("Every call and reply"):
+                    st.dataframe(pd.read_csv(table), hide_index=True)
+            st.caption(res["note"])
+    st.divider()
+
+
 def page_evaluation():
     st.header("Evaluation")
     st.write("This page measures the agent on test cases and shows the real "
@@ -609,6 +656,7 @@ def page_evaluation():
             st.code((proc.stderr or proc.stdout)[-2000:])
             return
         st.success("Evaluation finished.")
+    show_llm_test()
     show_evaluation_results()
 
 
