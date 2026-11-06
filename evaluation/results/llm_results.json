@@ -1,0 +1,29 @@
+{
+  "available": true,
+  "model": "qwen2.5:0.5b",
+  "calls_per_config": 4,
+  "configs": {
+    "Default settings": {
+      "calls": 4,
+      "reply_ok_percent": 100.0,
+      "rejected_by_safety_check_percent": 0.0,
+      "no_response_percent": 0.0,
+      "names_correct_answer_percent": 100.0,
+      "median_seconds": 42.1,
+      "slowest_seconds": 49.7,
+      "warmup_seconds": 55.1
+    },
+    "Small context + 3 threads": {
+      "calls": 4,
+      "reply_ok_percent": 100.0,
+      "rejected_by_safety_check_percent": 0.0,
+      "no_response_percent": 0.0,
+      "names_correct_answer_percent": 75.0,
+      "median_seconds": 38.1,
+      "slowest_seconds": 41.6,
+      "warmup_seconds": 59.3
+    }
+  },
+  "faster_setting": "Small context + 3 threads",
+  "note": "Speed depends on free memory and on what else is running. 'Names the correct answer' is a simple check, not a full quality score."
+}
