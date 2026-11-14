@@ -15,28 +15,87 @@ from agent import guardrails, llm, memory, notes, notes_quiz, planner, tools
 from agent.agent import QuizAgent
 from agent.generators import generate_questions
 
-st.set_page_config(page_title="Quiz Tutor Agent", page_icon="🎓")
+st.set_page_config(page_title="Quiz Tutor Agent", page_icon=":material/school:")
 
-HOME = "🏠 Home"
+HOME = "Home"
 
 CSS = """
 <style>
+@import url('https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@500;700&family=Public+Sans:wght@400;500;600&display=swap');
+:root {--ink:#17262B; --muted:#5B6B70; --paper:#F4F6F4; --surface:#FFFFFF;
+       --line:#D5DAD6; --maroon:#7A1F2B; --saffron:#E0A526; --teal:#1F4E5F;}
+html, body, .stApp, [data-testid="stMarkdownContainer"], button, input, textarea {
+       font-family: 'Public Sans', 'Segoe UI', system-ui, sans-serif;}
+h1, h2, h3, h4, .hero h1, [data-testid="stSidebar"] h1 {
+       font-family: 'Bricolage Grotesque', 'Segoe UI', system-ui, sans-serif !important;
+       color: var(--ink); letter-spacing: -0.015em;}
 footer {visibility: hidden;}
-.hero {background: linear-gradient(135deg, #4F46E5, #7C3AED); color: white;
-       padding: 28px 24px; border-radius: 16px; margin-bottom: 20px;}
-.hero h1 {color: white; margin: 0 0 6px 0; font-size: 2rem;}
-.hero p {margin: 0; font-size: 1.05rem; opacity: 0.95;}
-[data-testid="stMetric"] {background: white; border: 1px solid #E2E8F0;
-       border-radius: 12px; padding: 12px 16px;}
-.stButton > button {border-radius: 10px;}
-.step-card {background: white; border: 1px solid #E2E8F0; border-radius: 12px;
-       padding: 14px; font-size: 0.95rem;}
-.topic-head {color: white; padding: 10px 14px; border-radius: 10px;
-       font-weight: 700; font-size: 1.05rem; margin-bottom: 8px;}
-.chip {display: inline-block; padding: 6px 12px; border-radius: 999px;
+#MainMenu, [data-testid="stDeployButton"], .stAppDeployButton {display: none;}
+header[data-testid="stHeader"] {background: transparent;}
+.stApp {background: var(--paper); color: var(--ink);}
+.block-container {padding-top: 2.2rem; max-width: 1040px;}
+
+/* masthead */
+.hero {background: var(--maroon); color: #fff; padding: 40px 36px 34px;
+       border-radius: 10px; border-bottom: 5px solid var(--saffron); margin-bottom: 28px;}
+.hero h1 {color: #fff !important; margin: 0 0 10px 0; padding: 0; font-size: 2.7rem;
+       font-weight: 700; line-height: 1.1;}
+.hero p {margin: 0; font-size: 1.05rem; line-height: 1.6; max-width: 34rem; color: #F6E7E2;}
+
+/* numbers */
+[data-testid="stMetric"] {background: var(--surface); border: 1px solid var(--line);
+       border-top: 3px solid var(--ink); border-radius: 8px; padding: 14px 16px;}
+[data-testid="stMetricLabel"] {color: var(--muted); font-weight: 500;}
+[data-testid="stMetricValue"], [data-testid="stMetricValue"] div {
+       color: var(--ink); font-family: 'Bricolage Grotesque', 'Segoe UI', sans-serif;
+       font-weight: 700; font-size: 1.7rem !important; line-height: 1.2 !important;
+       white-space: normal !important; overflow: visible !important;
+       text-overflow: clip !important;}
+
+/* buttons */
+.stButton > button {border-radius: 6px; font-weight: 600; padding: 0.45rem 1.1rem;
+       border: 1px solid var(--ink); background: var(--surface); color: var(--ink);}
+.stButton > button:hover {border-color: var(--maroon); color: var(--maroon);
+       background: #FBF3F2;}
+.stButton > button[kind="primary"], [data-testid="stBaseButton-primary"] {
+       background: var(--maroon); border-color: var(--maroon); color: #fff;}
+.stButton > button[kind="primary"]:hover, [data-testid="stBaseButton-primary"]:hover {
+       background: #5F1822; border-color: #5F1822; color: #fff;}
+.stButton > button:focus-visible {outline: 3px solid var(--saffron); outline-offset: 2px;}
+.st-key-top_home button {border: none; background: transparent; box-shadow: none;
+       padding-left: 0; color: var(--maroon);}
+.st-key-top_home button:hover {background: transparent; text-decoration: underline;}
+
+/* surfaces */
+[data-testid="stVerticalBlockBorderWrapper"] {border-radius: 8px; background: var(--surface);
+       border-color: var(--line);}
+[data-testid="stExpander"] {border-radius: 8px; background: var(--surface);
+       border-color: var(--line);}
+.step-card {background: var(--surface); border: 1px solid var(--line);
+       border-left: 4px solid var(--maroon); border-radius: 8px; padding: 14px 16px;
+       font-size: 0.95rem; line-height: 1.55; height: 100%;}
+.step-card b {font-family: 'Bricolage Grotesque', 'Segoe UI', sans-serif; font-size: 1.05rem;}
+.topic-head {color: #fff; padding: 10px 14px; border-radius: 6px; margin-bottom: 8px;
+       font-family: 'Bricolage Grotesque', 'Segoe UI', sans-serif;
+       font-weight: 700; font-size: 1.05rem;}
+.chip {display: inline-block; padding: 6px 13px; border-radius: 999px;
        margin: 4px 6px 4px 0; font-size: 0.9rem; font-weight: 600;}
-.chip-on {background: #EEF2FF; color: #4338CA; border: 1px solid #C7D2FE;}
-.chip-off {background: #F1F5F9; color: #94A3B8; border: 1px dashed #CBD5E1;}
+.chip-on {background: #FBEFC9; color: #5C4000; border: 1px solid #E0C06A;}
+.chip-off {background: transparent; color: #7C8A8E; border: 1px dashed #B9C1BC;}
+.stTabs [data-baseweb="tab"] {font-weight: 600;}
+
+/* sidebar */
+[data-testid="stSidebar"] {background: #E9EEEA; border-right: 1px solid var(--line);}
+[data-testid="stSidebar"] h1 {font-size: 1.35rem; font-weight: 700; color: var(--maroon);}
+[data-testid="stSidebar"] [role="radiogroup"] label {padding: 8px 10px;
+       border-radius: 6px; width: 100%;}
+[data-testid="stSidebar"] [role="radiogroup"] label:hover {background: #DCE4DE;}
+/* fix: long values in the number cards wrap instead of being cut off */
+[data-testid="stMetric"] {overflow: visible !important; height: auto !important;}
+[data-testid="stMetricValue"], [data-testid="stMetricValue"] * {
+       white-space: normal !important; overflow: visible !important;
+       text-overflow: clip !important; overflow-wrap: anywhere !important;
+       font-size: 1.45rem !important; line-height: 1.25 !important;}
 </style>
 """
 st.markdown(CSS, unsafe_allow_html=True)
@@ -59,13 +118,13 @@ BADGES = {
     "medium": ":orange-badge[medium]",
     "hard": ":red-badge[hard]",
 }
-TOPIC_ICONS = {"Python basics": "🐍", "Statistics": "📊",
-               "Machine learning basics": "🤖"}
-TOPIC_COLORS = {"Python basics": ("#2563EB", "#06B6D4"),
-                "Statistics": ("#7C3AED", "#EC4899"),
-                "Machine learning basics": ("#059669", "#65A30D")}
-AUTO = "🤖 Let the agent decide"
-DIFFICULTY_LABELS = {"easy": "🟢 easy", "medium": "🟠 medium", "hard": "🔴 hard"}
+TOPIC_ICONS = {"Python basics": "", "Statistics": "",
+               "Machine learning basics": ""}
+TOPIC_COLORS = {"Python basics": ("#1F4E5F", "#1F4E5F"),
+                "Statistics": ("#7A1F2B", "#7A1F2B"),
+                "Machine learning basics": ("#4A5D23", "#4A5D23")}
+AUTO = "Let the agent decide"
+DIFFICULTY_LABELS = {"easy": "easy", "medium": "medium", "hard": "hard"}
 
 
 # ---------- small helpers and button actions ----------
@@ -93,10 +152,10 @@ def hero(title, subtitle):
 
 def score_message(score):
     if score >= 80:
-        return "🌟 Excellent work!"
+        return "Excellent work!"
     if score >= 50:
-        return "👍 Good effort. Read the explanations below."
-    return "💪 Keep practising. The agent will adjust your next quiz."
+        return "Good effort. Read the explanations below."
+    return "Keep practising. The agent will adjust your next quiz."
 
 
 def score_ring(score):
@@ -116,17 +175,17 @@ def achievements(history, n_topics):
     scores = list(history["score"]) if not history.empty else []
     tried = len(memory.get_topic_stats())
     return [
-        ("🥇", "First quiz", len(scores) >= 1),
-        ("🔥", "3 quizzes done", len(scores) >= 3),
-        ("💯", "Perfect score", any(s == 100 for s in scores)),
-        ("📈", "Improving", len(scores) >= 2 and scores[-1] > scores[0]),
-        ("🌍", "Tried every topic", n_topics > 0 and tried >= n_topics),
+        ("", "First quiz", len(scores) >= 1),
+        ("", "3 quizzes done", len(scores) >= 3),
+        ("", "Perfect score", any(s == 100 for s in scores)),
+        ("", "Improving", len(scores) >= 2 and scores[-1] > scores[0]),
+        ("", "Tried every topic", n_topics > 0 and tried >= n_topics),
     ]
 
 
 def show_plan(session):
     plan = session["plan"]
-    with st.expander("🧠 Why this quiz? (the agent's plan)", expanded=True):
+    with st.expander("Why this quiz? (the agent's plan)", expanded=True):
         st.write(
             f"**Topic:** {plan['topic']}  |  **Difficulty:** {plan['difficulty']}  "
             f"|  **Questions:** {len(session['questions'])}"
@@ -139,7 +198,7 @@ def show_plan(session):
 # ---------- pages ----------
 def page_home():
     hero(
-        "🎓 Quiz Tutor Agent",
+        "Quiz Tutor Agent",
         "An agent that plans your quizzes, gives hints, marks your answers "
         "and adapts to how you are doing.",
     )
@@ -161,11 +220,11 @@ def page_home():
     c4.metric("Level", 1 + progress["quizzes_taken"] // 3)
 
     with st.container(border=True):
-        st.markdown("#### 🎯 Recommended next quiz")
+        st.markdown("#### Recommended next quiz")
         st.write(rec["message"])
         st.caption("Open the Quiz page from the menu and let the agent decide.")
 
-    st.markdown("#### 🏅 Achievements")
+    st.markdown("#### Achievements")
     chips = "".join(
         f'<span class="chip {"chip-on" if earned else "chip-off"}">'
         f'{icon} {label}</span>'
@@ -195,11 +254,11 @@ def topic_cards(topics):
     for col, topic in zip(st.columns(len(topics)), topics):
         total = len([q for q in bank if q["topic"] == topic])
         seen = len(memory.get_seen_question_ids(topic))
-        c1, c2 = TOPIC_COLORS.get(topic, ("#4F46E5", "#7C3AED"))
+        c1, c2 = TOPIC_COLORS.get(topic, ("#33414A", "#33414A"))
         with col.container(border=True):
             st.markdown(
                 f'<div class="topic-head" style="background:linear-gradient('
-                f'135deg,{c1},{c2});">{TOPIC_ICONS.get(topic, "📚")} {topic}</div>',
+                f'135deg,{c1},{c2});">{TOPIC_ICONS.get(topic, "")} {topic}</div>',
                 unsafe_allow_html=True,
             )
             st.caption(f"{total} questions · {seen} already seen")
@@ -211,8 +270,7 @@ def topic_cards(topics):
 
 
 def show_setup():
-    st.button("← Home", on_click=go_home, key="setup_home")
-    st.header("📝 Start a quiz")
+    st.header("Start a quiz")
     try:
         topics = tools.list_topics()
         topic_cards(topics)
@@ -224,7 +282,7 @@ def show_setup():
         st.markdown("**1. Topic**")
         topic_pick = st.pills(
             "Topic", [AUTO] + topics + my_topics, default=AUTO, selection_mode="single",
-            format_func=lambda t: t if t == AUTO else f"{TOPIC_ICONS.get(t, '📚')} {t}",
+            format_func=lambda t: t if t == AUTO else f"{TOPIC_ICONS.get(t, '')} {t}",
             label_visibility="collapsed", key="topic_pick",
         )
         st.markdown("**2. Difficulty**")
@@ -266,7 +324,7 @@ def show_quiz():
     questions = session["questions"]
     st.button("← Cancel quiz", on_click=reset_quiz, key="cancel_quiz")
     st.caption("Cancelling does not save this quiz.")
-    st.header(f"📝 {TOPIC_ICONS.get(session['plan']['topic'], '')} "
+    st.header(f"{TOPIC_ICONS.get(session['plan']['topic'], '')} "
               f"{session['plan']['topic']}")
     for notice in session["notices"]:
         st.warning(notice)
@@ -294,7 +352,7 @@ def show_quiz():
                 key=f"ans_{quiz_no}_{q['id']}",
                 label_visibility="collapsed",
             )
-            if st.button("💡 Hint", key=f"hint_{quiz_no}_{q['id']}"):
+            if st.button("Hint", key=f"hint_{quiz_no}_{q['id']}"):
                 st.session_state.hint_text[q["id"]] = agent.get_hint(session, q["id"])
             if q["id"] in st.session_state.hint_text:
                 st.info("Hint: " + st.session_state.hint_text[q["id"]])
@@ -321,7 +379,7 @@ def show_quiz():
 def show_results():
     result = st.session_state.result
     session = st.session_state.session
-    st.header("🏁 Results")
+    st.header("Results")
     if result["score"] >= 80 and st.session_state.celebrated != st.session_state.quiz_no:
         st.balloons()
         st.session_state.celebrated = st.session_state.quiz_no
@@ -370,13 +428,13 @@ def show_results():
             st.success("AI tutor: " + out["text"])
         else:
             st.info(out["note"] + " " + out["text"])
-    with st.expander("🔍 What did the agent do? (trace)"):
+    with st.expander("What did the agent do? (trace)"):
         for step in session["trace"]:
             st.write(f"**{step['step']}:** {step['detail']}")
     b1, b2 = st.columns(2)
     b1.button("Start a new quiz", type="primary", on_click=reset_quiz,
               key="new_quiz", use_container_width=True)
-    b2.button("🏠 Back to Home", on_click=finish_and_go_home,
+    b2.button("Back to Home", on_click=finish_and_go_home,
               key="results_home", use_container_width=True)
 
 
@@ -390,7 +448,7 @@ def page_quiz():
 
 
 def page_progress():
-    st.header("📈 Progress and History")
+    st.header("Progress and History")
     history = memory.get_history()
     if history.empty:
         st.info("No quizzes yet. Take a quiz and your progress will appear here.")
@@ -406,17 +464,17 @@ def page_progress():
         scores = history[["score"]].copy()
         scores.index = range(1, len(scores) + 1)
         scores.index.name = "Quiz number"
-        st.line_chart(scores, color="#4F46E5")
+        st.line_chart(scores, color="#7A1F2B")
 
     with tab2:
         stats = memory.get_topic_stats()
         st.subheader("Accuracy by topic (%)")
-        st.bar_chart(stats.set_index("topic")["accuracy"], color="#7C3AED")
+        st.bar_chart(stats.set_index("topic")["accuracy"], color="#1F4E5F")
         weakest = stats.iloc[0]
         st.write(f"Area to improve: **{weakest['topic']}** "
                  f"({weakest['accuracy']:.0f}% correct).")
         st.subheader("Tools used by the agent")
-        st.bar_chart(history["tool_used"].value_counts(), color="#059669")
+        st.bar_chart(history["tool_used"].value_counts(), color="#C98B0B")
 
     with tab3:
         attempts = memory.get_attempts()
@@ -729,9 +787,9 @@ def page_evaluation():
 
 
 # ---------- navigation ----------
-PAGES = {HOME: page_home, "📝 Quiz": page_quiz, "📈 Progress": page_progress, "📓 My Notes": page_notes, "📊 Evaluation": page_evaluation}
+PAGES = {HOME: page_home, "Quiz": page_quiz, "Progress": page_progress, "My Notes": page_notes, "Evaluation": page_evaluation}
 
-st.sidebar.title("🎓 Quiz Tutor Agent")
+st.sidebar.title("Quiz Tutor Agent")
 choice = st.sidebar.radio("Menu", list(PAGES), label_visibility="collapsed",
                           key="menu")
 st.sidebar.divider()
@@ -756,4 +814,6 @@ with st.sidebar.expander("Privacy"):
     confirm = st.checkbox("I want to delete all my data", key="confirm_erase")
     st.button("Delete all my data", disabled=not confirm, on_click=erase_everything)
 
+if choice != HOME:
+    st.button("\u2190 Home", on_click=go_home, key="top_home")
 PAGES[choice]()
