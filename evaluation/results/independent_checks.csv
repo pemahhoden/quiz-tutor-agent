@@ -1,0 +1,13 @@
+template,checked,matched,mismatched,example_mismatch
+Python: // and %,100,100,0,
+Python: list slice,100,100,0,
+Python: floor division of a negative,100,100,0,
+Statistics: mean,100,100,0,
+Statistics: median,100,100,0,
+Statistics: z-score,100,100,0,
+Statistics: Bayes,100,100,0,
+Statistics: standard error,100,100,0,
+ML: accuracy,100,100,0,
+ML: train/test split,100,100,0,
+"ML: precision, recall, accuracy",100,100,0,
+ML: F1-score,100,100,0,

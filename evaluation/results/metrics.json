@@ -13,17 +13,17 @@
     "Notes questions passing checks": 100.0
   },
   "latency_ms": {
-    "start_quiz_median": 34.3,
-    "start_quiz_p95": 51.6,
-    "answer_and_finish_median": 27.0,
-    "answer_and_finish_p95": 48.6
+    "start_quiz_median": 34.9,
+    "start_quiz_p95": 44.5,
+    "answer_and_finish_median": 28.3,
+    "answer_and_finish_p95": 36.6
   },
   "tool_usage": {
     "question_bank": 120,
     "question_generator": 15
   },
   "generated_unique_share_percent": 60.2,
-  "notes_level_match_percent": 56.9,
+  "notes_level_match_percent": 42.9,
   "notes_failed_calls": 0,
-  "notes_calls": 60
+  "notes_calls": 30
 }

@@ -502,7 +502,7 @@ def run_evaluation(include_notes):
         return subprocess.run(
             [sys.executable, "-m", "evaluation.run_eval"], cwd=EVAL_ROOT, env=env,
             capture_output=True, text=True, encoding="utf-8", errors="replace",
-            timeout=900,
+            timeout=1800,
         )
 
 
@@ -533,6 +533,71 @@ def show_rating_tab():
         st.info("Deleted. Click 'Run evaluation' to make a new sheet.")
 
 
+def show_harder_tests():
+    path = RESULTS_DIR / "hard_results.json"
+    if not path.exists():
+        st.info("No results yet. Click 'Run evaluation' (it now includes the harder tests).")
+        return
+    hard = json.loads(path.read_text(encoding="utf-8"))
+    ind, base = hard["independent_check"], hard["baseline"]
+    sim, messy, stress = hard["simulation"], hard["messy_notes"], hard["stress_test"]
+    st.write("These tests were designed so that the agent can fail.")
+
+    st.subheader("1. Independent answer check")
+    st.write("Every generated question is recalculated from its own text by separate code.")
+    c1, c2, c3 = st.columns(3)
+    c1.metric("Questions checked", ind["questions_checked"])
+    c2.metric("Wrong answers found", ind["mismatches"])
+    c3.metric("Match rate", f"{ind['match_rate']}%")
+    table = RESULTS_DIR / "independent_checks.csv"
+    if table.exists():
+        st.dataframe(pd.read_csv(table), hide_index=True)
+
+    st.subheader("2. The agent compared with a plain random quiz")
+    c1, c2 = st.columns(2)
+    c1.metric("Repeated questions: agent", f"{base['agent_repeat_percent']}%")
+    c2.metric("Repeated questions: plain random quiz",
+              f"{base['plain_random_repeat_percent']}%")
+    st.caption(f"{base['students']} students, {base['quizzes_each']} quizzes each, "
+               f"{base['questions_per_quiz']} questions per quiz. The bank has "
+               f"{base['bank_size_for_topic']} questions for this topic. "
+               f"{base['agent_generated_share_percent']}% of the agent's questions "
+               f"were generated. Errors: {base['errors']}.")
+    path = RESULTS_DIR / "charts" / "baseline_repeats.png"
+    if path.exists():
+        st.image(str(path))
+
+    st.subheader("3. Simulated students")
+    st.warning(sim["assumption"])
+    st.dataframe(pd.DataFrame({"final skill (start 0.4)": sim["final_skill"],
+                               "average score (%)": sim["mean_score"]}))
+    st.caption(f"{sim['students_per_strategy']} virtual students per strategy, "
+               f"{sim['quizzes_each']} quizzes each. Errors: {sim['errors']}.")
+    for name in ["simulation_skill", "simulation_score"]:
+        path = RESULTS_DIR / "charts" / f"{name}.png"
+        if path.exists():
+            st.image(str(path))
+
+    st.subheader("4. Quizzes from messy notes")
+    st.metric("Note styles that gave a usable quiz",
+              f"{messy['usable']} of {messy['cases']}")
+    table = RESULTS_DIR / "messy_notes.csv"
+    if table.exists():
+        st.dataframe(pd.read_csv(table), hide_index=True)
+    path = RESULTS_DIR / "charts" / "messy_notes.png"
+    if path.exists():
+        st.image(str(path))
+
+    st.subheader("5. Stress test with random and invalid inputs")
+    c1, c2, c3 = st.columns(3)
+    c1.metric("Random actions", stress["rounds"])
+    c2.metric("Handled with a clear error", stress["handled_errors"])
+    c3.metric("Unexpected crashes", stress["unexpected_crashes"])
+    if stress["crash_examples"]:
+        st.error("These crashes were not handled. They are findings for your report.")
+        st.dataframe(pd.DataFrame(stress["crash_examples"]), hide_index=True)
+
+
 def show_evaluation_results():
     metrics_path = RESULTS_DIR / "metrics.json"
     if not metrics_path.exists():
@@ -543,8 +608,8 @@ def show_evaluation_results():
                          time.localtime(metrics_path.stat().st_mtime))
     st.caption(f"Last run: {when}. {metrics['quiz_runs']} quiz runs, "
                f"random seed {metrics['seed']}.")
-    tab1, tab2, tab3, tab4 = st.tabs(
-        ["Summary", "Charts", "Test details", "Rate questions"])
+    tab1, tab2, tab3, tab4, tab5 = st.tabs(
+        ["Summary", "Charts", "Test details", "Harder tests", "Rate questions"])
 
     with tab1:
         cols = st.columns(3)
@@ -584,6 +649,9 @@ def show_evaluation_results():
             st.dataframe(table, hide_index=True)
 
     with tab4:
+        show_harder_tests()
+
+    with tab5:
         show_rating_tab()
 
 
@@ -645,7 +713,7 @@ def page_evaluation():
     st.caption("The results then contain sentences from your notes. They stay on "
                "this laptop, and the rating sheet is kept out of GitHub.")
     if st.button("Run evaluation", type="primary"):
-        with st.spinner("Running the evaluation. This takes one to three minutes..."):
+        with st.spinner("Running the evaluation. This takes about three to eight minutes..."):
             try:
                 proc = run_evaluation(include)
             except subprocess.TimeoutExpired:

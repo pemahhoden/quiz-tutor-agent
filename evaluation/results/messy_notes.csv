@@ -1,0 +1,9 @@
+case,questions,all_pass_checks,usable,message
+Clean definitions (control),5,True,True,
+Bullet fragments only,0,True,False,Your notes do not have enough clear sentences to make questions. Try notes written in full
+Slide style 'Term: meaning',5,True,True,
+Mostly code,2,True,False,
+One sentence repeated 20 times,0,True,False,Your notes do not have enough clear sentences to make questions. Try notes written in full
+Numbers and tables,0,True,False,Your notes do not have enough clear sentences to make questions. Try notes written in full
+Long run-on text,0,True,False,Your notes do not have enough clear sentences to make questions. Try notes written in full
+ALL CAPS definitions,5,True,True,

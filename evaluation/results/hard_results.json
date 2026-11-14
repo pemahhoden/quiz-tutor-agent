@@ -1,0 +1,49 @@
+{
+  "independent_check": {
+    "templates": 12,
+    "questions_checked": 1200,
+    "mismatches": 0,
+    "match_rate": 100.0
+  },
+  "baseline": {
+    "students": 20,
+    "quizzes_each": 10,
+    "questions_per_quiz": 5,
+    "bank_size_for_topic": 12,
+    "agent_repeat_percent": 0.3,
+    "plain_random_repeat_percent": 76.2,
+    "agent_generated_share_percent": 79.8,
+    "errors": 0
+  },
+  "simulation": {
+    "students_per_strategy": 20,
+    "quizzes_each": 12,
+    "start_skill_mean": 0.4,
+    "final_skill": {
+      "Adaptive agent": 0.72,
+      "Always easy": 0.616,
+      "Always hard": 0.665,
+      "Random level": 0.699
+    },
+    "mean_score": {
+      "Adaptive agent": 74.7,
+      "Always easy": 82.8,
+      "Always hard": 42.6,
+      "Random level": 60.8
+    },
+    "errors": 0,
+    "assumption": "Virtual students learn fastest when the question level matches their skill. This is an assumption, so the result shows the agent tracks a student's level. It does not prove that real students learn more."
+  },
+  "messy_notes": {
+    "cases": 8,
+    "usable": 3,
+    "usable_percent": 37.5
+  },
+  "stress_test": {
+    "rounds": 400,
+    "successful_actions": 105,
+    "handled_errors": 286,
+    "unexpected_crashes": 0,
+    "crash_examples": []
+  }
+}

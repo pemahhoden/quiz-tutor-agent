@@ -2,6 +2,3 @@ note,difficulty,calls,failed_calls,questions,passed_checks,level_matched,unique
 Built-in sample,easy,10,0,70,70,40,7
 Built-in sample,medium,10,0,70,70,30,7
 Built-in sample,hard,10,0,70,70,20,7
-ai_and_ml_3,easy,10,0,100,100,0,21
-ai_and_ml_3,medium,10,0,100,100,100,21
-ai_and_ml_3,hard,10,0,100,100,100,15

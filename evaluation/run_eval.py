@@ -21,6 +21,7 @@ import pandas as pd
 
 from agent import generators, guardrails, memory, notes, notes_quiz, planner, tools
 from agent.agent import QuizAgent
+from evaluation import hard_tests
 
 HERE = Path(__file__).resolve().parent
 RESULTS = HERE / "results"
@@ -496,6 +497,8 @@ def main():
     metrics = build_metrics(gen, sel, dec, faults, tq, nq, rating_path)
     (RESULTS / "metrics.json").write_text(json.dumps(metrics, indent=2), encoding="utf-8")
     make_charts(metrics, gen, tq)
+    print("Running the harder tests (a few more minutes)...")
+    hard_tests.run_hard_tests(RESULTS, fresh_db)
 
     print("\nRESULTS (also saved in evaluation/results/metrics.json)")
     print(json.dumps(metrics, indent=2))
